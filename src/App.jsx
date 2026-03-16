@@ -179,8 +179,14 @@ const CSS = `
     .pair-sidebar > div { flex: 1; }
     .pair-sidebar .pool-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
     .def-row-badges { max-width: 120px; }
-    .home-header h1 { font-size: 28px !important; }
+    .score-inputs { flex-direction: column !important; }
+    .score-result { margin-top: 4px; text-align: right; }
+    .stat-row { flex-direction: column !important; gap: 8px !important; }
   }
+
+  /* Touch feedback for all interactive elements */
+  button:active, [role="button"]:active { opacity: 0.8; }
+  .tap-card:active { opacity: 0.9; }
 `;
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
@@ -732,7 +738,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
     return (
       <>
         <Divider label={label} />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))', gap:12, marginTop:12, marginBottom:16 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap:12, marginTop:12, marginBottom:16 }}>
           {list.sort((a, b) => (a.dates?.start ?? '').localeCompare(b.dates?.start ?? '')).map(renderCard)}
         </div>
       </>
@@ -918,7 +924,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
         })()}
         {completedRounds.length > 0 && (
           <>
-            <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
+            <div className="stat-row" style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
               <div style={{ textAlign:'center' }}>
                 <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
                 <Tag color={C.dim}>W-D-L</Tag>
@@ -949,11 +955,11 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
 
       <Divider label="Opponents" />
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(210px, 1fr))', gap:12, marginTop:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
           const facs = t.players.map(p => p.faction);
           return (
-            <div key={t.id} onClick={() => onSelect(t)} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s',
+            <div key={t.id} className="tap-card" onClick={() => onSelect(t)} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s, opacity 0.1s',
               display:'flex', flexDirection:'column', gap:8 }}
               onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.slate}
               onMouseLeave={e => e.currentTarget.style.borderLeftColor = C.bord}>
@@ -965,8 +971,8 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               </div>
               <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', marginTop:4 }}>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
-                  background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'8px 12px',
-                  fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1
+                  background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'10px 14px',
+                  fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1, minHeight:44
                 }}>Edit</button>
               </div>
             </div>
@@ -1107,7 +1113,7 @@ function Matchup({ team, onStart, onBack }) {
 
       <div style={{ position:'relative', marginBottom:24 }}>
         <div style={{ overflowX:'auto' }}>
-          <table style={{ borderCollapse:'collapse', width:'100%', minWidth:600 }}>
+          <table style={{ borderCollapse:'collapse', width:'100%', minWidth:480 }}>
             <thead>
               <tr>
                 <th style={{ padding:'8px 14px', borderBottom:`1px solid ${C.bord}` }} />
@@ -1115,8 +1121,8 @@ function Matchup({ team, onStart, onBack }) {
                   <Tag color={C.dim}>Avg</Tag>
                 </th>
                 {team.players.map((p, i) => (
-                  <th key={i} style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:90 }}>
-                    <Cine size={12} weight={700}>{p.faction}</Cine>
+                  <th key={i} style={{ padding:'8px 10px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:70 }}>
+                    <Cine size={13} weight={700}>{p.faction}</Cine>
                   </th>
                 ))}
               </tr>
@@ -1956,34 +1962,34 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
                       </div>
                       {inputMode === 'vp' ? (
-                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                          <div style={{ flex:1 }}>
+                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our VP</Tag>
                             <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
-                          <div style={{ flex:1 }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their VP</Tag>
                             <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           {sc.ourGP !== '' && sc.ourGP !== undefined && (
-                            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
+                            <span className="score-result" style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
                               {sc.ourGP}-{sc.theirGP}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                          <div style={{ flex:1 }}>
+                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our GP</Tag>
                             <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
-                          <div style={{ flex:1 }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their GP</Tag>
                             <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                         </div>
                       )}
