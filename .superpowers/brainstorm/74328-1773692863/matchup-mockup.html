@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War Room — Matchup + Pairing Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0806; color: #b0a898; font-family: 'IBM Plex Mono', monospace; min-height: 100vh; }
+  :root {
+    --bg: #0a0806; --surf: #0e0c0a; --bord: #1e1814; --bord-light: #2a2218;
+    --amber: #c88838; --amber-dim: #8a6028; --amber-glow: rgba(200,136,56,0.06);
+    --slate: #7888a0; --slate-dim: #506070;
+    --text: #b0a898; --dim: #706860; --white: #e8dcd0;
+    --green: #60a830; --green-fg: #80d040; --green-bg: #0d1a08;
+    --red: #a83030; --red-fg: #e04848; --red-bg: #1a0808;
+    --blue: #5090d0; --blue-bg: #081420;
+    --purple: #9070b0; --purple-bg: #140e1c;
+  }
+
+  .nav { position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bord);display:flex;align-items:center;padding:0 16px;height:52px; }
+  .nav-title { font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;color:var(--amber);letter-spacing:1px;flex:1; }
+  .page { max-width:960px;margin:0 auto;padding:20px 16px; }
+  .back { color:var(--dim);font-family:'Space Grotesk',sans-serif;font-size:12px;letter-spacing:2px;cursor:pointer;border:none;background:none;padding:0;margin-bottom:20px;display:block; }
+
+  .section-title { font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--amber-dim);margin-bottom:6px; }
+  .heading { font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;color:var(--white);margin-bottom:4px; }
+  .subheading { font-size:12px;color:var(--dim);font-style:italic;margin-bottom:20px; }
+
+  /* Matchup table */
+  .table-wrap { overflow-x:auto;margin-bottom:24px;position:relative; }
+  table { border-collapse:collapse;width:100%;min-width:600px; }
+  th,td { padding:10px 12px;border-bottom:1px solid var(--bord); }
+  th { font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:var(--dim);text-align:center; }
+  th:first-child { text-align:left; }
+  .player-cell { text-align:left; }
+  .player-cell .name { font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--white); }
+  .player-cell .faction { font-size:11px;color:var(--dim);font-style:italic; }
+  .avg-cell { font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:700;text-align:center; }
+
+  .badge { display:inline-block;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:700;text-align:center;min-width:36px;border-left:2px solid transparent; }
+  .b-wpp { background:#0d2a10;color:#60c030;border-left-color:#40a020; }
+  .b-wp { background:#0d2a10;color:#50b030;border-left-color:#308018; }
+  .b-w { background:var(--blue-bg);color:var(--blue);border-left-color:#305880; }
+  .b-wm { background:#1a1408;color:#b09030;border-left-color:#806020; }
+  .b-ps { background:var(--purple-bg);color:var(--purple);border-left-color:#604080; }
+  .b-q { background:#141210;color:#807868;border-left-color:#4a4438; }
+  .b-lm { background:#1a1008;color:#c08040;border-left-color:#805020; }
+  .b-l { background:var(--red-bg);color:var(--red-fg);border-left-color:#802020; }
+  .b-lp { background:#200808;color:#f04040;border-left-color:#a01818; }
+
+  .match-cell { text-align:center;transition:background 0.1s; }
+
+  /* Legend */
+  .legend { display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px; }
+  .legend-item { display:flex;align-items:center;gap:6px; }
+  .legend-label { font-size:12px;color:var(--dim); }
+
+  /* Pairing section */
+  .pair-header { display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;gap:10px; }
+  .pair-progress { display:flex;gap:3px;margin-bottom:20px; }
+  .pair-seg { flex:1;height:4px;background:var(--bord); }
+  .pair-seg.done { background:var(--amber); }
+  .pair-seg.active { background:var(--amber);opacity:0.5; }
+
+  .step-bar { display:flex;gap:0;margin-bottom:20px; }
+  .step { flex:1;border-top:2px solid var(--bord);padding-top:8px; }
+  .step.done { border-top-color:var(--amber); }
+  .step.active { border-top-color:var(--amber); }
+  .step-label { font-family:'Space Grotesk',sans-serif;font-size:11px;letter-spacing:1px;color:var(--dim); }
+  .step.active .step-label { color:var(--amber); }
+  .step.done .step-label { color:var(--amber-dim); }
+
+  .def-card {
+    border-left:3px solid var(--bord);background:var(--surf);
+    padding:12px 14px;margin-bottom:6px;cursor:pointer;
+    display:flex;align-items:center;gap:12px;
+    transition:border-color 0.12s;
+  }
+  .def-card:hover { border-left-color:var(--amber); }
+  .def-card.selected { border-left-color:var(--amber);background:rgba(200,136,56,0.04); }
+  .def-rank { font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--dim);min-width:24px; }
+  .def-info { flex:1; }
+  .def-name { font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;color:var(--white); }
+  .def-faction { font-size:11px;color:var(--dim);font-style:italic; }
+  .def-badges { display:flex;gap:4px;flex-wrap:wrap; }
+  .def-avg { font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:700;min-width:28px;text-align:right; }
+
+  .btn-primary { background:var(--amber);color:var(--bg);padding:14px 22px;border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;width:100%;text-align:center;margin-top:12px; }
+
+  .screen-label { font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:800;color:var(--white);margin-bottom:6px; }
+  .screen-desc { font-size:13px;color:var(--dim);font-style:italic;margin-bottom:20px; }
+
+  hr.section-break { border:none;border-top:2px solid var(--amber-dim);margin:40px 0; }
+</style>
+</head>
+<body>
+
+<!-- ─── SCREEN 1: MATCHUP TABLE ─── -->
+<div class="nav">
+  <div class="nav-title">Kent Teams March 2026</div>
+</div>
+
+<div class="page">
+  <button class="back">← Back</button>
+  <div class="section-title">Round Opponent</div>
+  <div class="heading">vs Drooling Cretins</div>
+  <div class="subheading">Matchup ratings for your team against this opponent</div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="min-width:120px;"></th>
+          <th>Avg</th>
+          <th>Drukhari</th>
+          <th>Grey Kn.</th>
+          <th>Custodes</th>
+          <th>Tau</th>
+          <th>Ultram.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="player-cell"><div class="name">Ollie</div><div class="faction">Necrons</div></td>
+          <td class="avg-cell" style="color:#80d040;">3.2</td>
+          <td class="match-cell"><span class="badge b-w">W</span></td>
+          <td class="match-cell"><span class="badge b-w">W</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+        </tr>
+        <tr>
+          <td class="player-cell"><div class="name">Jacob</div><div class="faction">Orks (GT)</div></td>
+          <td class="avg-cell" style="color:#c88838;">2.4</td>
+          <td class="match-cell"><span class="badge b-w">W</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-w">W</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-l">L</span></td>
+        </tr>
+        <tr>
+          <td class="player-cell"><div class="name">Paul</div><div class="faction">Sisters</div></td>
+          <td class="avg-cell" style="color:#c88838;">2.2</td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-l">L</span></td>
+          <td class="match-cell"><span class="badge b-q">?</span></td>
+        </tr>
+        <tr>
+          <td class="player-cell"><div class="name">Alex</div><div class="faction">Space Wolves</div></td>
+          <td class="avg-cell" style="color:#b09030;">1.8</td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-ps">PS</span></td>
+          <td class="match-cell"><span class="badge b-w">W</span></td>
+          <td class="match-cell"><span class="badge b-l">L</span></td>
+        </tr>
+        <tr>
+          <td class="player-cell"><div class="name">Matt</div><div class="faction">Custodes</div></td>
+          <td class="avg-cell" style="color:#e04848;">1.2</td>
+          <td class="match-cell"><span class="badge b-ps">PS</span></td>
+          <td class="match-cell"><span class="badge b-wpp">W++</span></td>
+          <td class="match-cell"><span class="badge b-ps">PS</span></td>
+          <td class="match-cell"><span class="badge b-l">L</span></td>
+          <td class="match-cell"><span class="badge b-l">L</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><span class="badge b-wpp">W++</span><span class="legend-label">Strong Win</span></div>
+    <div class="legend-item"><span class="badge b-wp">W+</span><span class="legend-label">Comfortable</span></div>
+    <div class="legend-item"><span class="badge b-w">W</span><span class="legend-label">Slight Edge</span></div>
+    <div class="legend-item"><span class="badge b-wm">W-</span><span class="legend-label">Narrow</span></div>
+    <div class="legend-item"><span class="badge b-ps">PS</span><span class="legend-label">Skill</span></div>
+    <div class="legend-item"><span class="badge b-q">?</span><span class="legend-label">Unknown</span></div>
+    <div class="legend-item"><span class="badge b-lm">L-</span><span class="legend-label">Narrow Loss</span></div>
+    <div class="legend-item"><span class="badge b-l">L</span><span class="legend-label">Mild Loss</span></div>
+    <div class="legend-item"><span class="badge b-lp">L+</span><span class="legend-label">Heavy Loss</span></div>
+  </div>
+
+  <button class="btn-primary">Begin Pairing →</button>
+
+  <hr class="section-break">
+
+  <!-- ─── SCREEN 2: PAIRING — DEFENDER SELECTION ─── -->
+
+  <div class="section-title">Round Pairing vs</div>
+  <div class="pair-header">
+    <div>
+      <div class="heading">Drooling Cretins</div>
+    </div>
+    <div style="text-align:right;">
+      <div class="section-title">Pairings</div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:24px;font-weight:700;color:var(--amber);">0<span style="color:var(--dim);font-size:14px;">/5</span></span>
+    </div>
+  </div>
+
+  <div class="pair-progress">
+    <div class="pair-seg active"></div>
+    <div class="pair-seg"></div>
+    <div class="pair-seg"></div>
+    <div class="pair-seg"></div>
+    <div class="pair-seg"></div>
+  </div>
+
+  <div class="step-bar">
+    <div class="step active"><div class="step-label">Defenders</div></div>
+    <div class="step"><div class="step-label">Reveal</div></div>
+    <div class="step"><div class="step-label">Attackers</div></div>
+    <div class="step"><div class="step-label">Reveal</div></div>
+    <div class="step"><div class="step-label">Resolve</div></div>
+  </div>
+
+  <div style="border-left:3px solid var(--amber);background:var(--surf);padding:20px;">
+    <div class="section-title">Step 1 · Choose Defender</div>
+    <div class="screen-label">Select Your Defender</div>
+    <div class="screen-desc">Ranked by average matchup score vs their remaining players. Pick secretly.</div>
+
+    <div class="def-card selected">
+      <div class="def-rank">#1</div>
+      <div class="def-info">
+        <div class="def-name" style="color:var(--amber);">Ollie</div>
+        <div class="def-faction">Necrons</div>
+      </div>
+      <div class="def-badges">
+        <span class="badge b-w">W</span>
+        <span class="badge b-w">W</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-wpp">W++</span>
+      </div>
+      <div class="def-avg" style="color:#80d040;">3.2</div>
+    </div>
+
+    <div class="def-card">
+      <div class="def-rank">#2</div>
+      <div class="def-info">
+        <div class="def-name">Jacob</div>
+        <div class="def-faction">Orks (GT)</div>
+      </div>
+      <div class="def-badges">
+        <span class="badge b-w">W</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-w">W</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-l">L</span>
+      </div>
+      <div class="def-avg" style="color:var(--amber);">2.4</div>
+    </div>
+
+    <div class="def-card">
+      <div class="def-rank">#3</div>
+      <div class="def-info">
+        <div class="def-name">Paul</div>
+        <div class="def-faction">Sisters</div>
+      </div>
+      <div class="def-badges">
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-l">L</span>
+        <span class="badge b-q">?</span>
+      </div>
+      <div class="def-avg" style="color:var(--amber);">2.2</div>
+    </div>
+
+    <div class="def-card">
+      <div class="def-rank">#4</div>
+      <div class="def-info">
+        <div class="def-name">Alex</div>
+        <div class="def-faction">Space Wolves</div>
+      </div>
+      <div class="def-badges">
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-ps">PS</span>
+        <span class="badge b-w">W</span>
+        <span class="badge b-l">L</span>
+      </div>
+      <div class="def-avg" style="color:#b09030;">1.8</div>
+    </div>
+
+    <div class="def-card">
+      <div class="def-rank">#5</div>
+      <div class="def-info">
+        <div class="def-name">Matt</div>
+        <div class="def-faction">Custodes</div>
+      </div>
+      <div class="def-badges">
+        <span class="badge b-ps">PS</span>
+        <span class="badge b-wpp">W++</span>
+        <span class="badge b-ps">PS</span>
+        <span class="badge b-l">L</span>
+        <span class="badge b-l">L</span>
+      </div>
+      <div class="def-avg" style="color:#e04848;">1.2</div>
+    </div>
+
+    <button class="btn-primary">Confirm Defender →</button>
+  </div>
+</div>
+
+</body>
+</html>

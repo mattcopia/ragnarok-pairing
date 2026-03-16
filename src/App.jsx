@@ -51,8 +51,9 @@ const DEFAULT_DEFS = {
 
 let defs = JSON.parse(JSON.stringify(DEFAULT_DEFS));
 
-const BG_COL = { 'W++':'#0a350a', 'W+':'#123c12', W:'#0e1e3a', 'W-':'#2e2210', PS:'#1e0e2e', '?':'#141414', 'L-':'#2a1010', L:'#380808', 'L+':'#400404' };
-const FG_COL = { 'W++':'#4adc4a', 'W+':'#30c830', W:'#5a90e0', 'W-':'#c09430', PS:'#b480d0', '?':'#8a8a8a', 'L-':'#d09060', L:'#e86050', 'L+':'#f03030' };
+const BG_COL = { 'W++':'#0d2a10', 'W+':'#0d2a10', W:'#081420', 'W-':'#1a1408', PS:'#140e1c', '?':'#141210', 'L-':'#1a1008', L:'#1a0808', 'L+':'#200808' };
+const FG_COL = { 'W++':'#60c030', 'W+':'#50b030', W:'#5090d0', 'W-':'#b09030', PS:'#9070b0', '?':'#807868', 'L-':'#c08040', L:'#e04848', 'L+':'#f04040' };
+const BD_COL = { 'W++':'#40a020', 'W+':'#308018', W:'#305880', 'W-':'#806020', PS:'#604080', '?':'#4a4438', 'L-':'#805020', L:'#802020', 'L+':'#a01818' };
 
 const gr  = (p, f)  => matrix[p]?.[f] ?? '?';
 const gs  = (p, f)  => (defs[gr(p,f)]?.score) ?? 2;
@@ -146,20 +147,25 @@ function gpToSuggestedRating(ourGP) {
 // ─── THEME ────────────────────────────────────────────────────────────────────
 
 const C = {
-  bg:'#07080b', surf:'#0b0d13', bord:'#18202e',
-  gold:'#c8a848', goldD:'#a08838', goldB:'#e0c060',
-  text:'#b8b0a0', dim:'#9a9488', white:'#e8e0d0',
-  blue:'#5a8ad0', red:'#c05050', green:'#4aac4a',
+  bg:'#0a0806', surf:'#0e0c0a', bord:'#1e1814', bordLight:'#2a2218',
+  gold:'#c88838', goldD:'#a87830', goldB:'#e0a040',
+  goldGlow:'rgba(200,136,56,0.06)',
+  slate:'#7888a0', slateDim:'#506070',
+  text:'#b0a898', dim:'#908878', white:'#e8dcd0',
+  blue:'#5090d0', red:'#e04848', green:'#80d040',
+  redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
+  purple:'#9070b0',
 };
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: ${C.bg}; color: ${C.text}; font-family: 'IBM Plex Mono', monospace; min-height: 100vh; }
+  body { background: ${C.bg}; color: ${C.text}; font-family: 'Source Code Pro', monospace; min-height: 100vh; }
   input, select, button { font-family: inherit; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; } ::-webkit-scrollbar-thumb { background: ${C.bord}; }
-  select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9488' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
-  select option { background: #0e1018; }
+  select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23908878' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
+  select option { background: ${C.surf}; }
+  @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:0.8; } }
 
   /* Responsive layout */
   .pair-layout { display: flex; gap: 16px; }
@@ -180,19 +186,19 @@ const CSS = `
 
 function Badge({ r }) {
   return (
-    <span style={{ display:'inline-block', padding:'4px 8px', background:BG_COL[r]??'#141414',
-      color:FG_COL[r]??'#686868', fontSize:12, fontWeight:700, fontFamily:'IBM Plex Mono, monospace',
-      minWidth:32, textAlign:'center', letterSpacing:0.5 }}>
+    <span style={{ display:'inline-block', padding:'4px 10px', background:BG_COL[r]??'#141210',
+      color:FG_COL[r]??'#807868', fontSize:12, fontWeight:700, fontFamily:'Source Code Pro, monospace',
+      minWidth:36, textAlign:'center', letterSpacing:0.5, borderLeft:`2px solid ${BD_COL[r]??'#4a4438'}` }}>
       {r ?? '?'}
     </span>
   );
 }
 
-function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? '#c08030' : s >= 1 ? '#d09060' : C.red; }
+function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? '#b09030' : s >= 1 ? '#c08040' : C.red; }
 
 function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   return (
-    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:3, color,
+    <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:3, color,
       textTransform:'uppercase', display:block?'block':'inline', marginBottom:mb,
       textAlign:center?'center':undefined }}>
       {children}
@@ -201,19 +207,19 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
 }
 
 function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0 }) {
-  return <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
+  return <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
   const bg = gold ? C.gold : 'transparent';
-  const col = gold ? '#1a0e00' : C.gold;
+  const col = gold ? C.bg : C.gold;
   const brd = ghost ? C.bord : C.gold;
   return (
     <button onClick={!disabled ? onClick : undefined} style={{
       border:`1px solid ${brd}`, color:col, background:bg,
       padding:sm ? '12px 16px' : '14px 22px',
       fontSize:sm ? 12 : 12, letterSpacing:2.5,
-      fontFamily:'Space Grotesk, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
+      fontFamily:'Chakra Petch, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
       cursor:disabled ? 'not-allowed' : 'pointer',
       opacity:disabled ? 0.3 : 1, width:full ? '100%' : undefined, ...s
     }}>
@@ -225,7 +231,7 @@ function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {}
 function Back({ onClick }) {
   return (
     <button onClick={onClick} style={{ background:'transparent', border:'none', color:C.dim,
-      fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
+      fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
       ← Back
     </button>
   );
@@ -252,7 +258,7 @@ function RatingRow({ player, factions }) {
       <div style={{ display:'flex', gap:5, flex:1, flexWrap:'wrap' }}>
         {factions.map((f, i) => <Badge key={i} r={gr(player.name, f)} />)}
       </div>
-      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
+      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
     </div>
   );
 }
@@ -318,7 +324,7 @@ function Ratings({ matrixData, onSave, onBack }) {
             <button key={r.id} onClick={() => setSelected(r.name)} style={{
               border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.1)' : 'transparent',
               color:sel ? C.gold : C.text, padding:'8px 14px', cursor:'pointer',
-              fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
+              fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
               position:'relative'
             }}>
               {r.name}
@@ -342,7 +348,7 @@ function Ratings({ matrixData, onSave, onBack }) {
               transition:'border-color 0.12s'
             }}>
               <div style={{ flex:1 }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white }}>{f}</span>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white }}>{f}</span>
                 {isChanged && <span style={{ fontSize:12, color:C.goldD, marginLeft:8 }}>was {def}</span>}
               </div>
               <Badge r={r} />
@@ -409,28 +415,28 @@ function Definitions({ defsData, onSave, onBack }) {
               background:changed ? 'rgba(200,168,72,0.04)' : 'transparent' }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
                 <Badge r={key} />
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 <div>
                   <Tag block mb={4} color={C.dim}>Label</Tag>
                   <input value={d.label ?? ''} onChange={e => update(key, 'label', e.target.value)}
-                    style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                      padding:'8px 10px', fontSize:13, fontFamily:'Space Grotesk, sans-serif', outline:'none' }} />
+                    style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                      padding:'8px 10px', fontSize:13, fontFamily:'Chakra Petch, sans-serif', outline:'none' }} />
                 </div>
                 <div style={{ display:'flex', gap:10 }}>
                   <div style={{ flex:1 }}>
                     <Tag block mb={4} color={C.dim}>Score</Tag>
                     <input type="number" step="0.5" min="0" max="5" value={d.score ?? 0}
                       onChange={e => update(key, 'score', parseFloat(e.target.value) || 0)}
-                      style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                        padding:'8px 10px', fontSize:13, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                      style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                        padding:'8px 10px', fontSize:13, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                   </div>
                 </div>
                 <div>
                   <Tag block mb={4} color={C.dim}>Description</Tag>
                   <input value={d.desc ?? ''} onChange={e => update(key, 'desc', e.target.value)}
-                    style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
+                    style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.text,
                       padding:'12px 12px', fontSize:14, outline:'none' }} />
                 </div>
               </div>
@@ -482,15 +488,15 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
       <nav style={{
         position:'sticky', top:0, zIndex:100, background:C.bg,
         borderBottom:`1px solid ${C.bord}`, display:'flex', alignItems:'center',
-        padding:'0 16px', height:48
+        padding:'0 16px', height:52
       }}>
-        <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
+        <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
           {activeEvent ? activeEvent.name : 'Tactical Teams Console'}
         </div>
         <button onClick={() => setOpen(true)} style={{
           background:'transparent', border:`1px solid ${C.bord}`, color:C.gold,
           width:44, height:44, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:16, fontFamily:'IBM Plex Mono, monospace'
+          fontSize:16, fontFamily:'Source Code Pro, monospace'
         }}>
           ☰
         </button>
@@ -500,7 +506,7 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
           <button onClick={() => setOpen(false)} style={{
             position:'absolute', top:6, right:16, background:'transparent', border:`1px solid ${C.bord}`,
-            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'IBM Plex Mono, monospace',
+            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'Source Code Pro, monospace',
             display:'flex', alignItems:'center', justifyContent:'center'
           }}>
             ✕
@@ -508,11 +514,11 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
           <div style={{ display:'flex', flexDirection:'column', gap:0, alignItems:'center', width:'100%', maxWidth:320 }}>
             {sections.map((section, si) => (
               <div key={si} style={{ width:'100%', marginBottom:si < sections.length - 1 ? 16 : 0 }}>
-                {section.label && <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, letterSpacing:3, textTransform:'uppercase', textAlign:'center', marginBottom:8 }}>{section.label}</div>}
+                {section.label && <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.goldD, letterSpacing:3, textTransform:'uppercase', textAlign:'center', marginBottom:8 }}>{section.label}</div>}
                 {section.items.filter(i => i.action).map((item, i) => (
                   <button key={i} onClick={() => { setOpen(false); item.action(); }} style={{
                     background:'transparent', border:'none', color:C.text, padding:'14px 24px', cursor:'pointer',
-                    fontFamily:'Space Grotesk, sans-serif', fontSize:16, textAlign:'center', width:'100%', display:'block'
+                    fontFamily:'Chakra Petch, sans-serif', fontSize:16, textAlign:'center', width:'100%', display:'block'
                   }}
                     onMouseEnter={e => e.currentTarget.style.color = C.gold}
                     onMouseLeave={e => e.currentTarget.style.color = C.text}>
@@ -558,8 +564,8 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
 
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)}
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
+        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:24 }}>
@@ -570,13 +576,13 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
               <div style={{ flex:1 }}>
                 <Tag block mb={4} color={C.dim}>Name</Tag>
                 <input value={p.name} onChange={e => update(i, 'name', e.target.value)}
-                  style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                    padding:'8px 10px', fontSize:14, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, outline:'none' }} />
+                  style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                    padding:'8px 10px', fontSize:14, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, outline:'none' }} />
               </div>
             </div>
             <Tag block mb={4} color={C.dim}>Faction</Tag>
             <input value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
+              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.text,
                 padding:'12px 12px', fontSize:14, outline:'none' }} />
           </div>
         ))}
@@ -629,11 +635,11 @@ function ManageFactions({ factionList, onSave, onBack }) {
         {local.map((f, i) => (
           <div key={i} style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input value={f} onChange={e => update(i, e.target.value)}
-              style={{ flex:1, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
+              style={{ flex:1, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
                 padding:'12px 12px', fontSize:14, outline:'none' }} />
             <button onClick={() => remove(i)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
-              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
+              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'Source Code Pro, monospace'
             }}>✕</button>
           </div>
         ))}
@@ -669,7 +675,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
     const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
     const isConfirming = confirmDel === evt.id;
     return (
-      <div key={evt.id} style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', transition:'border-color 0.15s', position:'relative' }}>
+      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'16px 18px', transition:'border-color 0.15s', position:'relative' }}>
         {/* Icons top-right */}
         <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6 }}>
           <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
@@ -691,15 +697,15 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
         </div>
 
         <div onClick={() => onSelect(evt)} style={{ cursor:'pointer', paddingRight:70 }}
-          onMouseEnter={e => e.currentTarget.parentElement.style.borderColor = C.goldD}
-          onMouseLeave={e => e.currentTarget.parentElement.style.borderColor = C.bord}>
+          onMouseEnter={e => e.currentTarget.parentElement.style.borderLeftColor = C.gold}
+          onMouseLeave={e => e.currentTarget.parentElement.style.borderLeftColor = C.bord}>
           <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
           <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
             {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <Tag color={C.dim}>{(evt.opponents ?? []).length + 1} teams · {((evt.opponents ?? []).length + 1) * 5} players</Tag>
-            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
+            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
               {roundsDone}/{evt.numRounds ?? 5}
             </span>
           </div>
@@ -818,32 +824,32 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 
       <Tag block mb={8}>Event Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kent Teams March 2026"
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
+        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
 
       <div style={{ display:'flex', gap:12, marginBottom:20 }}>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>Start Date</Tag>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>End Date</Tag>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
       </div>
 
       <Tag block mb={8}>Number of Rounds</Tag>
       <input type="number" min={minRounds} max="10" value={numRounds} onChange={e => setNumRounds(Math.max(minRounds, parseInt(e.target.value) || minRounds))}
-        style={{ width:100, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', marginBottom:4 }} />
+        style={{ width:100, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', marginBottom:4 }} />
       {completedRounds > 0 && <div style={{ fontSize:12, color:C.dim, marginBottom:20 }}>{completedRounds} round{completedRounds > 1 ? 's' : ''} completed — minimum {minRounds}</div>}
 
       {!event && (events ?? []).length > 0 && (
         <>
           <Tag block mb={8} color={C.dim}>Copy Roster & Rankings From</Tag>
           <select value={copyFrom} onChange={e => setCopyFrom(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
+            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
             <option value="">— Start Fresh —</option>
             {(events ?? []).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
@@ -899,7 +905,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
   });
 
   return (
-    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
+    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px', backgroundImage:`radial-gradient(ellipse at 50% -20%, ${C.goldGlow} 0%, transparent 50%)` }}>
       <Back onClick={onBack} />
       <div style={{ textAlign:'center', marginBottom:24 }}>
         {(() => {
@@ -913,20 +919,20 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           <>
             <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
               <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
+                <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
                 <Tag color={C.dim}>W-D-L</Tag>
               </div>
               <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
+                <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
                 <Tag color={C.dim}>Game Points</Tag>
               </div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20, maxWidth:500, margin:'0 auto 20px' }}>
               {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
-                <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}`, gap:10 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
+                <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.bord}`, background:C.surf, gap:10, marginBottom:4 }}>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
-                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
+                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
                   <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
                 </div>
               ))}
@@ -946,10 +952,10 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
         {sorted.map(t => {
           const facs = t.players.map(p => p.faction);
           return (
-            <div key={t.id} onClick={() => onSelect(t)} style={{ border:`1px solid ${C.bord}`, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s',
+            <div key={t.id} onClick={() => onSelect(t)} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s',
               display:'flex', flexDirection:'column', gap:8 }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
-              onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
+              onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.slate}
+              onMouseLeave={e => e.currentTarget.style.borderLeftColor = C.bord}>
               <Cine size={14} weight={700}>{t.name}</Cine>
               <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
                 {facs.map((f, i) => (
@@ -959,7 +965,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', marginTop:4 }}>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
                   background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'8px 12px',
-                  fontSize:12, fontFamily:'Space Grotesk, sans-serif', cursor:'pointer', letterSpacing:1
+                  fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1
                 }}>Edit</button>
               </div>
             </div>
@@ -990,21 +996,22 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
               return (
                 <div key={n} onClick={() => onRound(n)} style={{
-                  display:'flex', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.bord}`,
-                  cursor:'pointer', transition:'border-color 0.15s', gap:12
+                  display:'flex', alignItems:'center', padding:'14px 16px',
+                  borderLeft:`3px solid ${complete ? C.greenBord : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? C.gold : C.bord}`,
+                  background:C.surf, cursor:'pointer', transition:'border-color 0.15s', gap:12, marginBottom:4
                 }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:60 }}>Round {n}</span>
+                  onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.gold}
+                  onMouseLeave={e => e.currentTarget.style.borderLeftColor = complete ? C.greenBord : C.bord}>
+                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, color:C.dim, minWidth:28 }}>{String(n).padStart(2,'0')}</span>
                   <div style={{ flex:1 }}>
-                    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
+                    <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
                       {opp ? `vs ${opp.name}` : 'Not started'}
                     </span>
                   </div>
                   {complete && (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
-                      <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+                      <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
                     </div>
                   )}
                 </div>
@@ -1035,8 +1042,8 @@ function Setup({ team, onSave, onDelete, onBack }) {
 
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sons of Sanguinius…"
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
+        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <Tag block mb={12}>Factions (5 players)</Tag>
@@ -1044,7 +1051,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
         {players.map((p, i) => (
           <div key={i}>
             <select value={p.faction} onChange={e => set(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
+              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
               <option value="">— Player {i+1} Faction —</option>
               {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
             </select>
@@ -1123,7 +1130,7 @@ function Matchup({ team, onStart, onBack }) {
                       <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
                     </td>
                     <td style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}` }}>
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
                     </td>
                     {team.players.map((p, i) => {
                       const rat = gr(r.name, p.faction);
@@ -1247,7 +1254,7 @@ function Pairing({ team, onBack, onComplete }) {
   }
 
   const sideColor = { paired:C.dim, defender:C.blue, attacker:C.gold, pool:C.text };
-  const sideBorder = { paired:C.bord, defender:'#1e3a5a', attacker:'#5a4010', pool:C.bord };
+  const sideBorder = { paired:C.bord, defender:C.slateDim, attacker:'#5a4010', pool:C.bord };
 
   const sidebar = (
     <div className="pair-sidebar">
@@ -1257,8 +1264,8 @@ function Pairing({ team, onBack, onComplete }) {
           {RAGNAROK.map(r => {
             const st = poolStatus('our', r.id);
             return (
-              <div key={r.id} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
+              <div key={r.id} style={{ padding:'8px 10px', borderLeft:`3px solid ${sideBorder[st]}`, background:C.surf, opacity:st==='paired'?0.28:1 }}>
+                <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
                 <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
               </div>
             );
@@ -1271,8 +1278,8 @@ function Pairing({ team, onBack, onComplete }) {
           {team.players.map((p, i) => {
             const st = poolStatus('their', i);
             return (
-              <div key={i} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
+              <div key={i} style={{ padding:'8px 10px', borderLeft:`3px solid ${sideBorder[st]}`, background:C.surf, opacity:st==='paired'?0.28:1 }}>
+                <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
                 <div style={{ fontSize:12, visibility:'hidden' }}>–</div>
               </div>
             );
@@ -1298,11 +1305,11 @@ function Pairing({ team, onBack, onComplete }) {
             const sel = ourDef === i;
             const exp = expanded === i;
             return (
-              <div key={i} style={{ border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent', transition:'border-color 0.12s' }}>
+              <div key={i} style={{ border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent', transition:'border-color 0.12s' }}>
                 <div onClick={() => setOurDef(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1310,12 +1317,12 @@ function Pairing({ team, onBack, onComplete }) {
                   <div className="def-row-badges">
                     {theirRemFacs.map((f, fi) => <Badge key={fi} r={gr(r.name, f)} />)}
                   </div>
-                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
+                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
                 </div>
                 <div onClick={e => { e.stopPropagation(); setExpanded(exp ? null : i); }} style={{
                   padding:'0 14px 4px', cursor:'pointer', display:'flex', justifyContent:'flex-end'
                 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
                 </div>
                 {exp && (
                   <div style={{ padding:'6px 14px 12px', borderTop:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:4 }}>
@@ -1346,7 +1353,7 @@ function Pairing({ team, onBack, onComplete }) {
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:18 }}>
           Both teams reveal defenders simultaneously. Select who {team.name} put forward.
         </p>
-        <div style={{ padding:'10px 14px', border:`1px solid #1e3a5a`, background:'rgba(30,58,90,0.12)', marginBottom:18 }}>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{RAGNAROK[ourDef].faction}</div>
@@ -1360,7 +1367,7 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => setTheirDef(sel ? null : i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(192,80,80,0.06)' : 'transparent'
+                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(168,48,48,0.06)' : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
@@ -1386,7 +1393,7 @@ function Pairing({ team, onBack, onComplete }) {
       <>
         <Tag block mb={8}>Step 2 · Attackers</Tag>
         <Cine size={20} weight={900} mb={6}>Select Your Attackers</Cine>
-        <div style={{ padding:'10px 14px', border:`1px solid #4a2020`, background:'rgba(74,32,32,0.12)', marginBottom:18 }}>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.redBord}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.red} block mb={5}>Their Defender</Tag>
           <Cine size={13}>{team.players[theirDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{team.players[theirDef].faction}</div>
@@ -1402,10 +1409,10 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => toggleOurAtk(i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent'
+                border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent'
               }}>
-                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                   <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1415,7 +1422,7 @@ function Pairing({ team, onBack, onComplete }) {
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {ourAtk.length} / {maxOurAtk} selected
         </div>
         <Btn gold full disabled={ourAtk.length !== maxOurAtk} onClick={() => setPhase('their_atk')}>Lock In →</Btn>
@@ -1429,7 +1436,7 @@ function Pairing({ team, onBack, onComplete }) {
       <>
         <Tag block mb={8}>Step 2 · Reveal</Tag>
         <Cine size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
-        <div style={{ padding:'10px 14px', border:`1px solid #1e3a5a`, background:'rgba(30,58,90,0.10)', marginBottom:18 }}>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender Faces</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name} — select who they're sending</Cine>
         </div>
@@ -1441,7 +1448,7 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => toggleTheirAtk(i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(192,80,80,0.06)' : 'transparent'
+                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(168,48,48,0.06)' : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
@@ -1454,7 +1461,7 @@ function Pairing({ team, onBack, onComplete }) {
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {theirAtk.length} / {maxTheirAtk} selected
         </div>
         <Btn gold full disabled={theirAtk.length !== maxTheirAtk} onClick={() => { setAcceptedTheirAtk(null); setChosenOurAtk(null); setPhase('resolve'); }}>Proceed to Resolution →</Btn>
@@ -1477,10 +1484,10 @@ function Pairing({ team, onBack, onComplete }) {
         <Cine size={20} weight={900} mb={18}>Defenders Choose</Cine>
 
         {/* Our defender picks */}
-        <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:16 }}>
+        <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.surf, padding:'16px 18px', marginBottom:16 }}>
           <Tag color={C.blue} block mb={10}>Your Defender Picks Their Opponent</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
+            <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {theirAtk.map(i => {
@@ -1491,10 +1498,10 @@ function Pairing({ team, onBack, onComplete }) {
               return (
                 <div key={i} onClick={() => setAcceptedTheirAtk(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
+                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{p.faction}</Cine>
                   </div>
@@ -1506,10 +1513,10 @@ function Pairing({ team, onBack, onComplete }) {
         </div>
 
         {/* Our attacker vs their defender */}
-        <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:18 }}>
+        <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px 18px', marginBottom:18 }}>
           <Tag color={C.gold} block mb={10}>Our Attacker vs Their Defender</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            Their defender: <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{theirDefP.name}</span>
+            Their defender: <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.name}</span>
             <span style={{ color:C.dim, fontStyle:'italic' }}> ({theirDefP.faction})</span>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -1521,10 +1528,10 @@ function Pairing({ team, onBack, onComplete }) {
               return (
                 <div key={i} onClick={() => setChosenOurAtk(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
+                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1552,16 +1559,16 @@ function Pairing({ team, onBack, onComplete }) {
           <Cine size={22} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:32 }}>
             {pairings.map((p, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, background:'rgba(200,168,72,0.03)' }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 10px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1578,14 +1585,14 @@ function Pairing({ team, onBack, onComplete }) {
         {cycleRes && (
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:22 }}>
             {[cycleRes.p1, cycleRes.p2].map((p, i) => (
-              <div key={i} style={{ padding:'12px 16px', border:'1px solid #1a381a', background:'rgba(20,56,20,0.08)' }}>
+              <div key={i} style={{ padding:'12px 16px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
                 <Tag color={C.green} block mb={6}>Confirmed</Tag>
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.us.faction}</span>
                   <span style={{ color:C.goldD }}>⚔</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1635,13 +1642,15 @@ function Pairing({ team, onBack, onComplete }) {
         </div>
         <div style={{ textAlign:'right' }}>
           <Tag color={C.dim} block mb={4}>Pairings</Tag>
-          <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
+          <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
         </div>
       </div>
 
       {/* Progress */}
-      <div style={{ height:2, background:C.bord, marginBottom:14 }}>
-        <div style={{ height:'100%', background:C.gold, width:`${(pairings.length/5)*100}%`, transition:'width 0.5s' }} />
+      <div style={{ display:'flex', gap:3, marginBottom:14 }}>
+        {Array.from({ length:5 }, (_, i) => (
+          <div key={i} style={{ flex:1, height:4, background: i < pairings.length ? C.gold : C.bord, transition:'background 0.3s' }} />
+        ))}
       </div>
 
       {/* Step indicator */}
@@ -1650,14 +1659,14 @@ function Pairing({ team, onBack, onComplete }) {
           const done = i < curStep, active = i === curStep;
           return (
             <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3 }}>
-              <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
+              <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
             </div>
           );
         })}
       </div>
 
       <div className="pair-layout">
-        <div style={{ flex:1, border:`1px solid ${C.bord}`, padding:'22px 20px', minWidth:0 }}>
+        <div style={{ flex:1, borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'22px 20px', minWidth:0 }}>
           {panels[phase]}
         </div>
         {sidebar}
@@ -1668,16 +1677,16 @@ function Pairing({ team, onBack, onComplete }) {
           <Divider label="Confirmed Pairings" />
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
             {pairings.map((p, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', padding:'9px 14px', border:'1px solid #1a361a', background:'rgba(18,54,18,0.05)' }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'9px 14px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 8px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1731,9 +1740,9 @@ function ScoringTableEditor({ table, onSave, onBack }) {
       </p>
 
       <div style={{ display:'flex', gap:8, padding:'8px 12px', borderBottom:`1px solid ${C.bord}`, marginBottom:8 }}>
-        <span style={{ flex:1, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim }}>VP Diff</span>
-        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Winner</span>
-        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Loser</span>
+        <span style={{ flex:1, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim }}>VP Diff</span>
+        <span style={{ width:70, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Winner</span>
+        <span style={{ width:70, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Loser</span>
         <span style={{ width:44 }} />
       </div>
 
@@ -1742,17 +1751,17 @@ function ScoringTableEditor({ table, onSave, onBack }) {
           <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}` }}>
             <div style={{ flex:1, display:'flex', gap:4, alignItems:'center' }}>
               <input type="number" min="0" value={row.min} onChange={e => update(idx, 'min', e.target.value)}
-                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
               <span style={{ color:C.dim }}>-</span>
               <input type="number" min="0" value={row.max} onChange={e => update(idx, 'max', e.target.value)}
-                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
             </div>
             <input type="number" min="0" max="20" value={row.winGP} onChange={e => update(idx, 'winGP', e.target.value)}
-              style={{ width:70, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
-            <span style={{ width:70, fontFamily:'IBM Plex Mono, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
+              style={{ width:70, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+            <span style={{ width:70, fontFamily:'Source Code Pro, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
             <button onClick={() => removeRow(idx)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
-              width:44, height:34, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
+              width:44, height:34, cursor:'pointer', fontSize:14, fontFamily:'Source Code Pro, monospace'
             }}>✕</button>
           </div>
         ))}
@@ -1810,12 +1819,12 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
             }}
               onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
               onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.dim, minWidth:70 }}>Round {n}</span>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white, flex:1 }}>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.dim, minWidth:70 }}>Round {n}</span>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white, flex:1 }}>
                 {opp ? `vs ${opp.name}` : 'Unknown'}
               </span>
-              <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+              <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
             </div>
           );
         })}
@@ -1881,7 +1890,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           </p>
           <Tag block mb={10}>Opponent</Tag>
           <select value={opponentId} onChange={e => setOpponentId(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
+            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
             <option value="">— Select Opponent —</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -1906,7 +1915,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                       {usPlayer && <span style={{ fontSize:12, color:C.blue, flex:1 }}>{usPlayer.name} <span style={{ color:C.dim }}>vs</span> <span style={{ color:C.red }}>{themFaction}</span></span>}
                       {!usPlayer && <span style={{ fontSize:12, color:C.dim, flex:1 }}>Table {idx + 1}</span>}
                       {sc.ourVP !== '' && sc.ourVP !== undefined && <span style={{ fontSize:12, color:C.dim }}>VP: {sc.ourVP}-{sc.theirVP}</span>}
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
                         {sc.ourGP}-{sc.theirGP}
                       </span>
                     </div>
@@ -1915,10 +1924,10 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
-                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
                 </span>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
                 </span>
               </div>
@@ -1950,15 +1959,15 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                           <div style={{ flex:1 }}>
                             <Tag block mb={4} color={C.dim}>Our VP</Tag>
                             <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           <div style={{ flex:1 }}>
                             <Tag block mb={4} color={C.dim}>Their VP</Tag>
                             <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           {sc.ourGP !== '' && sc.ourGP !== undefined && (
-                            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
+                            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
                               {sc.ourGP}-{sc.theirGP}
                             </span>
                           )}
@@ -1968,12 +1977,12 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                           <div style={{ flex:1 }}>
                             <Tag block mb={4} color={C.dim}>Our GP</Tag>
                             <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           <div style={{ flex:1 }}>
                             <Tag block mb={4} color={C.dim}>Their GP</Tag>
                             <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                         </div>
                       )}
@@ -1984,10 +1993,10 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
 
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
-                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
                 </span>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
                 </span>
               </div>
@@ -2002,14 +2011,14 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                       <div key={idx} style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:C.text }}>
                         <span>Table {idx + 1}</span>
                         {inputMode === 'vp' && sc.ourVP !== '' && <span style={{ color:C.dim }}>VP: {sc.ourVP} - {sc.theirVP}</span>}
-                        <span style={{ fontFamily:'IBM Plex Mono, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                        <span style={{ fontFamily:'Source Code Pro, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
                           {sc.ourGP} - {sc.theirGP}
                         </span>
                       </div>
                     ))}
                   </div>
                   <div style={{ textAlign:'center', marginBottom:14 }}>
-                    <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                    <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                       Total: {ourTotal} - {theirTotal} ({ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'})
                     </span>
                   </div>
@@ -2076,7 +2085,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         border:`1px solid ${checked ? C.gold : C.bord}`, background:checked ? 'rgba(200,168,72,0.06)' : 'transparent'
                       }}>
                         <span style={{ fontSize:16, color:checked ? C.gold : C.dim }}>{checked ? '☑' : '☐'}</span>
-                        <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
+                        <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
                         <span style={{ fontSize:12, color:C.dim }}>vs {s.faction}</span>
                         <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6 }}>
                           <Badge r={s.current} />
