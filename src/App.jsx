@@ -320,10 +320,10 @@ function Ratings({ matrixData, onSave, onBack }) {
   return (
     <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>Matchup Matrix</Tag>
-      <Cine size={24} weight={900} mb={6}>Edit Ratings</Cine>
+      <Tag block mb={10}>Player Rankings</Tag>
+      <Cine size={24} weight={900} mb={6}>Edit Rankings</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
-        Tap a rating to cycle through: G → A+ → A → A- → PS → N → R
+        Tap a rating to cycle: W++ → W+ → W → W- → PS → ? → L- → L → L+
       </p>
 
       {/* Player tabs */}
@@ -463,7 +463,7 @@ function Definitions({ defsData, onSave, onBack }) {
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
         <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Definitions'}</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaultss</Btn>
       </div>
     </div>
   );
@@ -668,7 +668,7 @@ function ManageFactions({ factionList, onSave, onBack }) {
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
         <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Factions'}</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaultss</Btn>
       </div>
     </div>
   );
@@ -1055,10 +1055,10 @@ function Setup({ team, onSave, onDelete, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>{team ? 'Edit Opponent' : 'New Opponent'}</Tag>
-      <Cine size={24} weight={900} mb={28}>{team ? 'Edit Team' : 'Add Opponent Team'}</Cine>
+      <Cine size={24} weight={900} mb={28}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
 
       <Tag block mb={8}>Team Name</Tag>
-      <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sons of Sanguinius…"
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Opponent team name"
         style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
           padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
@@ -1076,7 +1076,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
         ))}
       </div>
       <Btn gold full disabled={!ok} onClick={() => onSave({ ...team, id:team?.id ?? Date.now().toString(), name, players })}>
-        Save Team
+        {team ? 'Save Changes' : 'Add Opponent'}
       </Btn>
 
       {team && (
@@ -1366,9 +1366,9 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 1 · Reveal</Tag>
-        <Cine size={20} weight={900} mb={6}>Defenders Revealed</Cine>
+        <Cine size={20} weight={900} mb={6}>Enter Their Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:18 }}>
-          Both teams reveal defenders simultaneously. Select who {team.name} put forward.
+          Both teams have revealed defenders. Select the faction {team.name} put forward.
         </p>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender</Tag>
@@ -1392,7 +1392,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
                   <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>we rate this</span>
+                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
                   <Badge r={rat} />
                 </div>
               </div>
@@ -1499,7 +1499,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
                   <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>our matchup</span>
+                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
                   <Badge r={rat} />
                 </div>
               </div>
@@ -1670,7 +1670,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
                 )}
                 {cycleRes.refusedOur && (
                   <div style={{ fontSize:13, color:C.dim }}>
-                    ↩ <span style={{ color:C.blue }}>{cycleRes.refusedOur.name}</span> ({cycleRes.refusedOur.faction}) back to Ragnarok
+                    ↩ <span style={{ color:C.blue }}>{cycleRes.refusedOur.name}</span> ({cycleRes.refusedOur.faction}) back to your pool
                   </div>
                 )}
               </div>
@@ -1840,7 +1840,7 @@ function ScoringTableEditor({ table, onSave, onBack }) {
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
         <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Table'}</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Default</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
       </div>
     </div>
   );
@@ -1864,7 +1864,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
 
       {completedRounds.length === 0 && (
         <div style={{ padding:'16px', border:`1px solid ${C.bord}`, textAlign:'center' }}>
-          <span style={{ fontSize:13, color:C.dim, fontStyle:'italic' }}>No completed rounds yet.</span>
+          <span style={{ fontSize:13, color:C.dim, fontStyle:'italic' }}>No rounds have been scored yet. Complete a round first.</span>
         </div>
       )}
 
@@ -1972,7 +1972,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           {/* Read-only summary for completed rounds */}
           {round.complete && !editing && (
             <>
-              <Tag block mb={12} color={C.dim}>Scores Submitted</Tag>
+              <Tag block mb={12} color={C.green}>Round Complete</Tag>
               <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:16 }}>
                 {(round.scores ?? []).map((sc, idx) => {
                   const pairing = pairings[idx];
@@ -2029,7 +2029,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                             <span style={{ color:C.slate, fontWeight:600 }}>{themFaction}</span>
                           </span>
                         ) : (
-                          <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>No pairing data</span>
+                          <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Pairing not recorded</span>
                         )}
                       </div>
                       {inputMode === 'vp' ? (
@@ -2102,7 +2102,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   </div>
                   <div style={{ display:'flex', gap:10 }}>
                     <Btn gold full onClick={() => { saveScores(); setConfirmSave(false); setEditing(false); }}>Confirm</Btn>
-                    <Btn ghost full onClick={() => setConfirmSave(false)}>Edit</Btn>
+                    <Btn ghost full onClick={() => setConfirmSave(false)}>Go Back</Btn>
                   </div>
                 </div>
               )}
