@@ -107,15 +107,27 @@ function winChance(theirFacs) {
 }
 
 // VP ↔ Game Points conversion
-function vpDiffToGP(diff) {
-  if (diff > 50) return [20, 0];
-  const bracket = Math.min(Math.floor(diff / 5), 10);
-  return [10 + bracket, 10 - bracket];
-}
+const DEFAULT_SCORING_TABLE = [
+  { min:0,  max:5,   winGP:10 },
+  { min:6,  max:10,  winGP:11 },
+  { min:11, max:15,  winGP:12 },
+  { min:16, max:20,  winGP:13 },
+  { min:21, max:25,  winGP:14 },
+  { min:26, max:30,  winGP:15 },
+  { min:31, max:35,  winGP:16 },
+  { min:36, max:40,  winGP:17 },
+  { min:41, max:45,  winGP:18 },
+  { min:46, max:50,  winGP:19 },
+  { min:51, max:999, winGP:20 },
+];
+
+let scoringTable = [...DEFAULT_SCORING_TABLE];
 
 function vpToGP(ourVP, theirVP) {
   const diff = Math.abs(ourVP - theirVP);
-  const [winGP, loseGP] = vpDiffToGP(diff);
+  const row = scoringTable.find(r => diff >= r.min && diff <= r.max) ?? scoringTable[scoringTable.length - 1];
+  const winGP = row.winGP;
+  const loseGP = 20 - winGP;
   return ourVP >= theirVP ? [winGP, loseGP] : [loseGP, winGP];
 }
 
@@ -141,11 +153,12 @@ const C = {
 };
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Crimson+Text:ital,wght@0,400;1,400&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: ${C.bg}; color: ${C.text}; font-family: 'Crimson Text', Georgia, serif; min-height: 100vh; }
+  body { background: ${C.bg}; color: ${C.text}; font-family: 'IBM Plex Mono', monospace; min-height: 100vh; }
   input, select, button { font-family: inherit; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; } ::-webkit-scrollbar-thumb { background: ${C.bord}; }
+  select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9488' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
   select option { background: #0e1018; }
 
   /* Responsive layout */
@@ -168,7 +181,7 @@ const CSS = `
 function Badge({ r }) {
   return (
     <span style={{ display:'inline-block', padding:'4px 8px', background:BG_COL[r]??'#141414',
-      color:FG_COL[r]??'#686868', fontSize:12, fontWeight:700, fontFamily:'monospace',
+      color:FG_COL[r]??'#686868', fontSize:12, fontWeight:700, fontFamily:'IBM Plex Mono, monospace',
       minWidth:32, textAlign:'center', letterSpacing:0.5 }}>
       {r ?? '?'}
     </span>
@@ -179,7 +192,7 @@ function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? 
 
 function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   return (
-    <span style={{ fontFamily:'Cinzel, serif', fontSize:12, letterSpacing:3, color,
+    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:3, color,
       textTransform:'uppercase', display:block?'block':'inline', marginBottom:mb,
       textAlign:center?'center':undefined }}>
       {children}
@@ -188,7 +201,7 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
 }
 
 function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0 }) {
-  return <div style={{ fontFamily:'Cinzel, serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
+  return <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
@@ -198,9 +211,9 @@ function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {}
   return (
     <button onClick={!disabled ? onClick : undefined} style={{
       border:`1px solid ${brd}`, color:col, background:bg,
-      padding:sm ? '10px 16px' : '12px 22px',
-      fontSize:sm ? 11 : 12, letterSpacing:2.5,
-      fontFamily:'Cinzel, serif', textTransform:'uppercase',
+      padding:sm ? '12px 16px' : '14px 22px',
+      fontSize:sm ? 12 : 12, letterSpacing:2.5,
+      fontFamily:'Space Grotesk, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
       cursor:disabled ? 'not-allowed' : 'pointer',
       opacity:disabled ? 0.3 : 1, width:full ? '100%' : undefined, ...s
     }}>
@@ -212,7 +225,7 @@ function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {}
 function Back({ onClick }) {
   return (
     <button onClick={onClick} style={{ background:'transparent', border:'none', color:C.dim,
-      fontFamily:'Cinzel, serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
+      fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
       ← Back
     </button>
   );
@@ -239,7 +252,7 @@ function RatingRow({ player, factions }) {
       <div style={{ display:'flex', gap:5, flex:1, flexWrap:'wrap' }}>
         {factions.map((f, i) => <Badge key={i} r={gr(player.name, f)} />)}
       </div>
-      <span style={{ fontFamily:'monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
+      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
     </div>
   );
 }
@@ -305,7 +318,7 @@ function Ratings({ matrixData, onSave, onBack }) {
             <button key={r.id} onClick={() => setSelected(r.name)} style={{
               border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.1)' : 'transparent',
               color:sel ? C.gold : C.text, padding:'8px 14px', cursor:'pointer',
-              fontFamily:'Cinzel, serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
+              fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
               position:'relative'
             }}>
               {r.name}
@@ -329,7 +342,7 @@ function Ratings({ matrixData, onSave, onBack }) {
               transition:'border-color 0.12s'
             }}>
               <div style={{ flex:1 }}>
-                <span style={{ fontFamily:'Cinzel, serif', fontSize:13, color:C.white }}>{f}</span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white }}>{f}</span>
                 {isChanged && <span style={{ fontSize:12, color:C.goldD, marginLeft:8 }}>was {def}</span>}
               </div>
               <Badge r={r} />
@@ -396,14 +409,14 @@ function Definitions({ defsData, onSave, onBack }) {
               background:changed ? 'rgba(200,168,72,0.04)' : 'transparent' }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
                 <Badge r={key} />
-                <span style={{ fontFamily:'Cinzel, serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 <div>
                   <Tag block mb={4} color={C.dim}>Label</Tag>
                   <input value={d.label ?? ''} onChange={e => update(key, 'label', e.target.value)}
                     style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                      padding:'8px 10px', fontSize:13, fontFamily:'Cinzel, serif', outline:'none' }} />
+                      padding:'8px 10px', fontSize:13, fontFamily:'Space Grotesk, sans-serif', outline:'none' }} />
                 </div>
                 <div style={{ display:'flex', gap:10 }}>
                   <div style={{ flex:1 }}>
@@ -411,14 +424,14 @@ function Definitions({ defsData, onSave, onBack }) {
                     <input type="number" step="0.5" min="0" max="5" value={d.score ?? 0}
                       onChange={e => update(key, 'score', parseFloat(e.target.value) || 0)}
                       style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                        padding:'8px 10px', fontSize:13, fontFamily:'monospace', outline:'none' }} />
+                        padding:'8px 10px', fontSize:13, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
                   </div>
                 </div>
                 <div>
                   <Tag block mb={4} color={C.dim}>Description</Tag>
                   <input value={d.desc ?? ''} onChange={e => update(key, 'desc', e.target.value)}
                     style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
-                      padding:'8px 10px', fontSize:13, outline:'none' }} />
+                      padding:'12px 12px', fontSize:14, outline:'none' }} />
                 </div>
               </div>
             </div>
@@ -441,19 +454,29 @@ function Definitions({ defsData, onSave, onBack }) {
 
 // ─── BURGER MENU ─────────────────────────────────────────────────────────────
 
-function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvents, onEditEvent }) {
+function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvents, onEditEvent, onEditRounds, onScoringTable }) {
   const [open, setOpen] = useState(false);
-  const items = activeEvent ? [
-    { label: 'Back to Events', action: onEvents },
-    { label: 'Edit Event', action: onEditEvent },
-    { label: 'Edit Player Rankings', action: onRatings },
-    { label: 'Define Rankings', action: onDefs },
-    { label: 'Edit Our Team', action: onOurTeam },
-    { label: 'Manage Factions', action: onFactions },
+  const sections = activeEvent ? [
+    { label: 'Event', items: [
+      { label: 'Event Settings', action: onEditEvent },
+      { label: 'Edit Our Team', action: onOurTeam },
+      { label: 'Edit Player Rankings', action: onRatings },
+      { label: 'Edit Round Scores', action: onEditRounds },
+      { label: 'Scoring Table', action: onScoringTable },
+    ]},
+    { label: 'General', items: [
+      { label: 'Define Rankings', action: onDefs },
+      { label: 'Manage Factions', action: onFactions },
+    ]},
+    { label: '', items: [
+      { label: 'Back to Events', action: onEvents },
+    ]},
   ] : [
-    { label: 'Define Rankings', action: onDefs },
-    { label: 'Manage Factions', action: onFactions },
-  ].filter(i => i.action);
+    { label: 'General', items: [
+      { label: 'Define Rankings', action: onDefs },
+      { label: 'Manage Factions', action: onFactions },
+    ]},
+  ];
   return (
     <>
       <nav style={{
@@ -461,13 +484,13 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
         borderBottom:`1px solid ${C.bord}`, display:'flex', alignItems:'center',
         padding:'0 16px', height:48
       }}>
-        <div style={{ fontFamily:'Cinzel, serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
+        <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
           {activeEvent ? activeEvent.name : 'Tactical Teams Console'}
         </div>
         <button onClick={() => setOpen(true)} style={{
           background:'transparent', border:`1px solid ${C.bord}`, color:C.gold,
           width:44, height:44, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:16, fontFamily:'monospace'
+          fontSize:16, fontFamily:'IBM Plex Mono, monospace'
         }}>
           ☰
         </button>
@@ -477,21 +500,26 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
           <button onClick={() => setOpen(false)} style={{
             position:'absolute', top:6, right:16, background:'transparent', border:`1px solid ${C.bord}`,
-            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'monospace',
+            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'IBM Plex Mono, monospace',
             display:'flex', alignItems:'center', justifyContent:'center'
           }}>
             ✕
           </button>
-          <div style={{ display:'flex', flexDirection:'column', gap:6, alignItems:'center' }}>
-            {items.map((item, i) => (
-              <button key={i} onClick={() => { setOpen(false); item.action(); }} style={{
-                background:'transparent', border:'none', color:C.text, padding:'16px 24px', cursor:'pointer',
-                fontFamily:'Cinzel, serif', fontSize:18, letterSpacing:2, textAlign:'center'
-              }}
-                onMouseEnter={e => e.currentTarget.style.color = C.gold}
-                onMouseLeave={e => e.currentTarget.style.color = C.text}>
-                {item.label}
-              </button>
+          <div style={{ display:'flex', flexDirection:'column', gap:0, alignItems:'center', width:'100%', maxWidth:320 }}>
+            {sections.map((section, si) => (
+              <div key={si} style={{ width:'100%', marginBottom:si < sections.length - 1 ? 16 : 0 }}>
+                {section.label && <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, letterSpacing:3, textTransform:'uppercase', textAlign:'center', marginBottom:8 }}>{section.label}</div>}
+                {section.items.filter(i => i.action).map((item, i) => (
+                  <button key={i} onClick={() => { setOpen(false); item.action(); }} style={{
+                    background:'transparent', border:'none', color:C.text, padding:'14px 24px', cursor:'pointer',
+                    fontFamily:'Space Grotesk, sans-serif', fontSize:16, textAlign:'center', width:'100%', display:'block'
+                  }}
+                    onMouseEnter={e => e.currentTarget.style.color = C.gold}
+                    onMouseLeave={e => e.currentTarget.style.color = C.text}>
+                    {item.label}
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
         </div>
@@ -531,7 +559,7 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)}
         style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Cinzel, serif', fontWeight:600,
+          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:24 }}>
@@ -543,13 +571,13 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
                 <Tag block mb={4} color={C.dim}>Name</Tag>
                 <input value={p.name} onChange={e => update(i, 'name', e.target.value)}
                   style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                    padding:'8px 10px', fontSize:14, fontFamily:'Cinzel, serif', fontWeight:600, outline:'none' }} />
+                    padding:'8px 10px', fontSize:14, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, outline:'none' }} />
               </div>
             </div>
             <Tag block mb={4} color={C.dim}>Faction</Tag>
             <input value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
               style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
-                padding:'8px 10px', fontSize:13, outline:'none' }} />
+                padding:'12px 12px', fontSize:14, outline:'none' }} />
           </div>
         ))}
       </div>
@@ -602,10 +630,10 @@ function ManageFactions({ factionList, onSave, onBack }) {
           <div key={i} style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input value={f} onChange={e => update(i, e.target.value)}
               style={{ flex:1, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                padding:'8px 10px', fontSize:13, outline:'none' }} />
+                padding:'12px 12px', fontSize:14, outline:'none' }} />
             <button onClick={() => remove(i)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
-              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'monospace'
+              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
             }}>✕</button>
           </div>
         ))}
@@ -628,8 +656,82 @@ function ManageFactions({ factionList, onSave, onBack }) {
 
 // ─── EVENT LIST ──────────────────────────────────────────────────────────────
 
-function EventList({ events, onSelect, onAdd }) {
-  const sorted = [...events].sort((a, b) => (b.dates?.start ?? '').localeCompare(a.dates?.start ?? ''));
+function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
+  const [confirmDel, setConfirmDel] = useState(null);
+  const today = new Date().toISOString().slice(0, 10);
+
+  const current = events.filter(e => (e.dates?.start ?? '') <= today && (e.dates?.end ?? e.dates?.start ?? '') >= today);
+  const upcoming = events.filter(e => (e.dates?.start ?? '') > today);
+  const past = events.filter(e => (e.dates?.end ?? e.dates?.start ?? '') < today && (e.dates?.start ?? '') !== '');
+  const undated = events.filter(e => !e.dates?.start);
+
+  const renderCard = (evt) => {
+    const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
+    const isConfirming = confirmDel === evt.id;
+    return (
+      <div key={evt.id} style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', transition:'border-color 0.15s', position:'relative' }}>
+        {/* Icons top-right */}
+        <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6 }}>
+          <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
+            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
+            width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.gold; e.currentTarget.style.borderColor = C.goldD; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
+            ⚙
+          </button>
+          <button onClick={e => { e.stopPropagation(); setConfirmDel(evt.id); }} style={{
+            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
+            width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = '#3a1818'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
+            🗑
+          </button>
+        </div>
+
+        <div onClick={() => onSelect(evt)} style={{ cursor:'pointer', paddingRight:70 }}
+          onMouseEnter={e => e.currentTarget.parentElement.style.borderColor = C.goldD}
+          onMouseLeave={e => e.currentTarget.parentElement.style.borderColor = C.bord}>
+          <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
+          <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
+            {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
+          </div>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+            <Tag color={C.dim}>{(evt.opponents ?? []).length + 1} teams · {((evt.opponents ?? []).length + 1) * 5} players</Tag>
+            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
+              {roundsDone}/{evt.numRounds ?? 5}
+            </span>
+          </div>
+        </div>
+
+        {isConfirming && (
+          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:'rgba(192,80,80,0.06)' }}>
+            <p style={{ fontSize:13, color:C.dim, marginBottom:12 }}>Delete {evt.name}? This cannot be undone.</p>
+            <div style={{ display:'flex', gap:10 }}>
+              <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+                Yes, Delete
+              </Btn>
+              <Btn ghost full onClick={() => setConfirmDel(null)}>Cancel</Btn>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderSection = (label, list) => {
+    if (list.length === 0) return null;
+    return (
+      <>
+        <Divider label={label} />
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))', gap:12, marginTop:12, marginBottom:16 }}>
+          {list.sort((a, b) => (a.dates?.start ?? '').localeCompare(b.dates?.start ?? '')).map(renderCard)}
+        </div>
+      </>
+    );
+  };
+
   return (
     <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
       <div style={{ textAlign:'center', marginBottom:24 }}>
@@ -639,28 +741,12 @@ function EventList({ events, onSelect, onAdd }) {
         </p>
       </div>
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))', gap:12 }}>
-        {sorted.map(evt => {
-          const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
-          return (
-            <div key={evt.id} onClick={() => onSelect(evt)} style={{
-              border:`1px solid ${C.bord}`, padding:'16px 18px', cursor:'pointer', transition:'border-color 0.15s'
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
-              onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-              <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
-              <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
-                {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
-              </div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-                <Tag color={C.dim}>{(evt.opponents ?? []).length} opponents</Tag>
-                <span style={{ fontFamily:'monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
-                  {roundsDone}/{evt.numRounds ?? 5}
-                </span>
-              </div>
-            </div>
-          );
-        })}
+      {renderSection('Current', current)}
+      {renderSection('Upcoming', upcoming)}
+      {renderSection('Past', past)}
+      {renderSection('Undated', undated)}
+
+      <div style={{ marginTop:16 }}>
         <div onClick={onAdd} style={{
           border:`1px dashed ${C.bord}`, padding:'16px 18px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
@@ -686,7 +772,9 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
   const [copyFrom, setCopyFrom] = useState('');
   const [confirmDel, setConfirmDel] = useState(false);
 
-  const ok = name && numRounds > 0;
+  const completedRounds = event ? Object.values(event.rounds ?? {}).filter(r => r && r.complete).length : 0;
+  const minRounds = Math.max(1, completedRounds);
+  const ok = name && numRounds >= minRounds;
 
   const handleSave = () => {
     let base = {
@@ -695,6 +783,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
       matrix: JSON.parse(JSON.stringify(DEFAULT_MATRIX)),
       opponents: [],
       rounds: {},
+      scoringTable: JSON.parse(JSON.stringify(DEFAULT_SCORING_TABLE)),
     };
 
     if (copyFrom && !event) {
@@ -704,11 +793,12 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
         base.roster = JSON.parse(JSON.stringify(src.roster));
         base.matrix = JSON.parse(JSON.stringify(src.matrix));
         base.opponents = JSON.parse(JSON.stringify(src.opponents ?? []));
+        base.scoringTable = JSON.parse(JSON.stringify(src.scoringTable ?? DEFAULT_SCORING_TABLE));
       }
     }
 
     if (event) {
-      base = { teamName: event.teamName, roster: event.roster, matrix: event.matrix, opponents: event.opponents, rounds: event.rounds };
+      base = { teamName: event.teamName, roster: event.roster, matrix: event.matrix, opponents: event.opponents, rounds: event.rounds, scoringTable: event.scoringTable ?? DEFAULT_SCORING_TABLE };
     }
 
     onSave({
@@ -729,30 +819,31 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
       <Tag block mb={8}>Event Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kent Teams March 2026"
         style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Cinzel, serif', fontWeight:600, marginBottom:20, outline:'none' }} />
+          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
 
       <div style={{ display:'flex', gap:12, marginBottom:20 }}>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>Start Date</Tag>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'8px 10px', fontSize:13, outline:'none' }} />
+            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>End Date</Tag>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'8px 10px', fontSize:13, outline:'none' }} />
+            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
       </div>
 
       <Tag block mb={8}>Number of Rounds</Tag>
-      <input type="number" min="1" max="10" value={numRounds} onChange={e => setNumRounds(e.target.value)}
-        style={{ width:80, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'8px 10px', fontSize:13, fontFamily:'monospace', outline:'none', marginBottom:20 }} />
+      <input type="number" min={minRounds} max="10" value={numRounds} onChange={e => setNumRounds(Math.max(minRounds, parseInt(e.target.value) || minRounds))}
+        style={{ width:100, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', marginBottom:4 }} />
+      {completedRounds > 0 && <div style={{ fontSize:12, color:C.dim, marginBottom:20 }}>{completedRounds} round{completedRounds > 1 ? 's' : ''} completed — minimum {minRounds}</div>}
 
       {!event && (events ?? []).length > 0 && (
         <>
           <Tag block mb={8} color={C.dim}>Copy Roster & Rankings From</Tag>
           <select value={copyFrom} onChange={e => setCopyFrom(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'8px 10px', fontSize:13, outline:'none', marginBottom:20 }}>
+            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
             <option value="">— Start Fresh —</option>
             {(events ?? []).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
@@ -785,7 +876,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 
-function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound }) {
+function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
   const sorted = [...teams].sort((a, b) => a.name.localeCompare(b.name));
 
   // Standings
@@ -809,26 +900,33 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound }) {
 
   return (
     <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
+      <Back onClick={onBack} />
       <div style={{ textAlign:'center', marginBottom:24 }}>
-        <Tag color={C.gold} block mb={10}>Team: {teamName}</Tag>
+        {(() => {
+          const numR = event?.numRounds ?? 5;
+          const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
+          return nextRound
+            ? <Cine size={22} weight={900} mb={12}>Round {nextRound}</Cine>
+            : <Cine size={22} weight={900} mb={12}>Event Complete</Cine>;
+        })()}
         {completedRounds.length > 0 && (
           <>
             <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
               <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
+                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
                 <Tag color={C.dim}>W-D-L</Tag>
               </div>
               <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
+                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
                 <Tag color={C.dim}>Game Points</Tag>
               </div>
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20, maxWidth:500, margin:'0 auto 20px' }}>
               {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
                 <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}`, gap:10 }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
-                  <span style={{ fontFamily:'monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
+                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
                   <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
                 </div>
               ))}
@@ -861,7 +959,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound }) {
               <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', marginTop:4 }}>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
                   background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'8px 12px',
-                  fontSize:12, fontFamily:'Cinzel, serif', cursor:'pointer', letterSpacing:1
+                  fontSize:12, fontFamily:'Space Grotesk, sans-serif', cursor:'pointer', letterSpacing:1
                 }}>Edit</button>
               </div>
             </div>
@@ -897,16 +995,16 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound }) {
                 }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
                   onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, minWidth:60 }}>Round {n}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:60 }}>Round {n}</span>
                   <div style={{ flex:1 }}>
-                    <span style={{ fontFamily:'Cinzel, serif', fontSize:13, color:opp ? C.white : C.dim }}>
+                    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
                       {opp ? `vs ${opp.name}` : 'Not started'}
                     </span>
                   </div>
                   {complete && (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontFamily:'monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
-                      <span style={{ fontFamily:'Cinzel, serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+                      <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
                     </div>
                   )}
                 </div>
@@ -938,7 +1036,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sons of Sanguinius…"
         style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Cinzel, serif', fontWeight:600,
+          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <Tag block mb={12}>Factions (5 players)</Tag>
@@ -946,7 +1044,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
         {players.map((p, i) => (
           <div key={i}>
             <select value={p.faction} onChange={e => set(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'8px 10px', fontSize:13, outline:'none' }}>
+              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
               <option value="">— Player {i+1} Faction —</option>
               {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
             </select>
@@ -960,15 +1058,21 @@ function Setup({ team, onSave, onDelete, onBack }) {
       {team && (
         <div style={{ marginTop:24, borderTop:`1px solid ${C.bord}`, paddingTop:20 }}>
           {!confirmDelete ? (
-            <Btn ghost sm full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
+            <Btn ghost full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
               Remove Team
             </Btn>
           ) : (
-            <div style={{ display:'flex', gap:10 }}>
-              <Btn sm full onClick={() => { onDelete(team.id); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
-                Confirm Remove
-              </Btn>
-              <Btn ghost sm full onClick={() => setConfirmDelete(false)}>Cancel</Btn>
+            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:'rgba(192,80,80,0.06)' }}>
+              <Cine size={14} weight={700} color={C.red} mb={8}>Remove {team.name}?</Cine>
+              <p style={{ fontSize:13, color:C.dim, marginBottom:16 }}>
+                This will permanently remove this opponent team. Any round data linked to them will remain but won't show the team name.
+              </p>
+              <div style={{ display:'flex', gap:10 }}>
+                <Btn full onClick={() => { onDelete(team.id); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+                  Yes, Remove
+                </Btn>
+                <Btn ghost full onClick={() => setConfirmDelete(false)}>Cancel</Btn>
+              </div>
             </div>
           )}
         </div>
@@ -993,48 +1097,52 @@ function Matchup({ team, onStart, onBack }) {
         <Btn gold onClick={onStart}>Begin Pairing →</Btn>
       </div>
 
-      <div style={{ overflowX:'auto', marginBottom:24 }}>
-        <table style={{ borderCollapse:'collapse', width:'100%', minWidth:600 }}>
-          <thead>
-            <tr>
-              <th style={{ padding:'8px 14px', textAlign:'left', borderBottom:`1px solid ${C.bord}` }}>
-                <Tag color={C.dim}>Ragnarok</Tag>
-              </th>
-              {team.players.map((p, i) => (
-                <th key={i} style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:90 }}>
-                  <Cine size={11} weight={700}>{p.faction}</Cine>
+      <div style={{ position:'relative', marginBottom:24 }}>
+        <div style={{ overflowX:'auto' }}>
+          <table style={{ borderCollapse:'collapse', width:'100%', minWidth:600 }}>
+            <thead>
+              <tr>
+                <th style={{ padding:'8px 14px', borderBottom:`1px solid ${C.bord}` }} />
+                <th style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:44 }}>
+                  <Tag color={C.dim}>Avg</Tag>
                 </th>
-              ))}
-              <th style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:54 }}>
-                <Tag color={C.dim}>Avg</Tag>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {RAGNAROK.map(r => {
-              const a = avg(r.name, theirFacs);
-              return (
-                <tr key={r.id}>
-                  <td style={{ padding:'10px 14px', borderBottom:`1px solid ${C.bord}` }}>
-                    <Cine size={12}>{r.name}</Cine>
-                    <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
-                  </td>
-                  {team.players.map((p, i) => {
-                    const rat = gr(r.name, p.faction);
-                    return (
-                      <td key={i} style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, background:BG_COL[rat]+'30' }}>
-                        <Badge r={rat} />
-                      </td>
-                    );
-                  })}
-                  <td style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}` }}>
-                    <span style={{ fontFamily:'monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                {team.players.map((p, i) => (
+                  <th key={i} style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:90 }}>
+                    <Cine size={12} weight={700}>{p.faction}</Cine>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {RAGNAROK.map(r => {
+                const a = avg(r.name, theirFacs);
+                return (
+                  <tr key={r.id}>
+                    <td style={{ padding:'10px 14px', borderBottom:`1px solid ${C.bord}` }}>
+                      <Cine size={12}>{r.name}</Cine>
+                      <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
+                    </td>
+                    <td style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}` }}>
+                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
+                    </td>
+                    {team.players.map((p, i) => {
+                      const rat = gr(r.name, p.faction);
+                      return (
+                        <td key={i} style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, background:BG_COL[rat]+'30' }}>
+                          <Badge r={rat} />
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div style={{ position:'absolute', top:0, right:0, bottom:0, width:32, pointerEvents:'none',
+          background:`linear-gradient(to right, transparent, ${C.bg})`, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <span style={{ color:C.dim, fontSize:16 }}>→</span>
+        </div>
       </div>
 
       <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
@@ -1150,7 +1258,7 @@ function Pairing({ team, onBack, onComplete }) {
             const st = poolStatus('our', r.id);
             return (
               <div key={r.id} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Cinzel, serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
+                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
                 <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
               </div>
             );
@@ -1164,7 +1272,7 @@ function Pairing({ team, onBack, onComplete }) {
             const st = poolStatus('their', i);
             return (
               <div key={i} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Cinzel, serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
+                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
                 <div style={{ fontSize:12, visibility:'hidden' }}>–</div>
               </div>
             );
@@ -1194,7 +1302,7 @@ function Pairing({ team, onBack, onComplete }) {
                 <div onClick={() => setOurDef(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1202,12 +1310,12 @@ function Pairing({ team, onBack, onComplete }) {
                   <div className="def-row-badges">
                     {theirRemFacs.map((f, fi) => <Badge key={fi} r={gr(r.name, f)} />)}
                   </div>
-                  <span style={{ fontFamily:'monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
+                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
                 </div>
                 <div onClick={e => { e.stopPropagation(); setExpanded(exp ? null : i); }} style={{
                   padding:'0 14px 4px', cursor:'pointer', display:'flex', justifyContent:'flex-end'
                 }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
                 </div>
                 {exp && (
                   <div style={{ padding:'6px 14px 12px', borderTop:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:4 }}>
@@ -1296,8 +1404,8 @@ function Pairing({ team, onBack, onComplete }) {
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent'
               }}>
-                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Cinzel, serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
-                <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                   <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1307,7 +1415,7 @@ function Pairing({ team, onBack, onComplete }) {
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {ourAtk.length} / {maxOurAtk} selected
         </div>
         <Btn gold full disabled={ourAtk.length !== maxOurAtk} onClick={() => setPhase('their_atk')}>Lock In →</Btn>
@@ -1346,7 +1454,7 @@ function Pairing({ team, onBack, onComplete }) {
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {theirAtk.length} / {maxTheirAtk} selected
         </div>
         <Btn gold full disabled={theirAtk.length !== maxTheirAtk} onClick={() => { setAcceptedTheirAtk(null); setChosenOurAtk(null); setPhase('resolve'); }}>Proceed to Resolution →</Btn>
@@ -1372,7 +1480,7 @@ function Pairing({ team, onBack, onComplete }) {
         <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:16 }}>
           <Tag color={C.blue} block mb={10}>Your Defender Picks Their Opponent</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            <span style={{ fontFamily:'Cinzel, serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
+            <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {theirAtk.map(i => {
@@ -1386,7 +1494,7 @@ function Pairing({ team, onBack, onComplete }) {
                   border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Cinzel, serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{p.faction}</Cine>
                   </div>
@@ -1401,7 +1509,7 @@ function Pairing({ team, onBack, onComplete }) {
         <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:18 }}>
           <Tag color={C.gold} block mb={10}>Our Attacker vs Their Defender</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            Their defender: <span style={{ fontFamily:'Cinzel, serif', color:C.white }}>{theirDefP.name}</span>
+            Their defender: <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{theirDefP.name}</span>
             <span style={{ color:C.dim, fontStyle:'italic' }}> ({theirDefP.faction})</span>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -1416,7 +1524,7 @@ function Pairing({ team, onBack, onComplete }) {
                   border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Cinzel, serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1445,15 +1553,15 @@ function Pairing({ team, onBack, onComplete }) {
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:32 }}>
             {pairings.map((p, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, background:'rgba(200,168,72,0.03)' }}>
-                <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 10px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1473,11 +1581,11 @@ function Pairing({ team, onBack, onComplete }) {
               <div key={i} style={{ padding:'12px 16px', border:'1px solid #1a381a', background:'rgba(20,56,20,0.08)' }}>
                 <Tag color={C.green} block mb={6}>Confirmed</Tag>
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.us.faction}</span>
                   <span style={{ color:C.goldD }}>⚔</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1527,7 +1635,7 @@ function Pairing({ team, onBack, onComplete }) {
         </div>
         <div style={{ textAlign:'right' }}>
           <Tag color={C.dim} block mb={4}>Pairings</Tag>
-          <span style={{ fontFamily:'Cinzel, serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
+          <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
         </div>
       </div>
 
@@ -1542,7 +1650,7 @@ function Pairing({ team, onBack, onComplete }) {
           const done = i < curStep, active = i === curStep;
           return (
             <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3 }}>
-              <div style={{ fontFamily:'Cinzel, serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
+              <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
             </div>
           );
         })}
@@ -1561,15 +1669,15 @@ function Pairing({ team, onBack, onComplete }) {
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
             {pairings.map((p, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', padding:'9px 14px', border:'1px solid #1a361a', background:'rgba(18,54,18,0.05)' }}>
-                <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 8px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1581,6 +1689,141 @@ function Pairing({ team, onBack, onComplete }) {
 }
 
 
+// ─── SCORING TABLE EDITOR ────────────────────────────────────────────────────
+
+function ScoringTableEditor({ table, onSave, onBack }) {
+  const [local, setLocal] = useState(JSON.parse(JSON.stringify(table ?? DEFAULT_SCORING_TABLE)));
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState(null);
+
+  const update = (idx, field, value) => {
+    const next = [...local];
+    next[idx] = { ...next[idx], [field]: parseInt(value) || 0 };
+    setLocal(next);
+  };
+
+  const addRow = () => {
+    const last = local[local.length - 1];
+    setLocal([...local, { min: (last?.max ?? 0) + 1, max: (last?.max ?? 0) + 5, winGP: 20 }]);
+  };
+
+  const removeRow = (idx) => setLocal(local.filter((_, i) => i !== idx));
+
+  const handleSave = () => {
+    setSaving(true);
+    onSave(local).then(() => { setSaving(false); setLastSaved(new Date()); });
+  };
+
+  const handleReset = () => {
+    const fresh = JSON.parse(JSON.stringify(DEFAULT_SCORING_TABLE));
+    setLocal(fresh);
+    setSaving(true);
+    onSave(fresh).then(() => { setSaving(false); setLastSaved(new Date()); });
+  };
+
+  return (
+    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+      <Back onClick={onBack} />
+      <Tag block mb={10}>Event Scoring</Tag>
+      <Cine size={24} weight={900} mb={6}>VP to Game Points</Cine>
+      <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
+        Edit the conversion table used to calculate game points from VP difference.
+      </p>
+
+      <div style={{ display:'flex', gap:8, padding:'8px 12px', borderBottom:`1px solid ${C.bord}`, marginBottom:8 }}>
+        <span style={{ flex:1, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim }}>VP Diff</span>
+        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Winner</span>
+        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Loser</span>
+        <span style={{ width:44 }} />
+      </div>
+
+      <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20 }}>
+        {local.map((row, idx) => (
+          <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}` }}>
+            <div style={{ flex:1, display:'flex', gap:4, alignItems:'center' }}>
+              <input type="number" min="0" value={row.min} onChange={e => update(idx, 'min', e.target.value)}
+                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+              <span style={{ color:C.dim }}>-</span>
+              <input type="number" min="0" value={row.max} onChange={e => update(idx, 'max', e.target.value)}
+                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+            </div>
+            <input type="number" min="0" max="20" value={row.winGP} onChange={e => update(idx, 'winGP', e.target.value)}
+              style={{ width:70, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+            <span style={{ width:70, fontFamily:'IBM Plex Mono, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
+            <button onClick={() => removeRow(idx)} style={{
+              background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
+              width:44, height:34, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
+            }}>✕</button>
+          </div>
+        ))}
+      </div>
+
+      <Btn ghost sm onClick={addRow} style={{ marginBottom:20 }}>+ Add Row</Btn>
+
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
+        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+      </div>
+
+      <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
+        <Btn gold onClick={handleSave}>Save Table</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Default</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ─── ROUND PICKER ────────────────────────────────────────────────────────────
+
+function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
+  const numRounds = event?.numRounds ?? 5;
+  const completedRounds = Array.from({ length: numRounds }, (_, i) => i + 1)
+    .filter(n => rounds[n]?.complete);
+
+  return (
+    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+      <Back onClick={onBack} />
+      <Tag block mb={10}>Edit Scores</Tag>
+      <Cine size={24} weight={900} mb={8}>Select a Round</Cine>
+      <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
+        Choose a completed round to review or edit its scores.
+      </p>
+
+      {completedRounds.length === 0 && (
+        <div style={{ padding:'16px', border:`1px solid ${C.bord}`, textAlign:'center' }}>
+          <span style={{ fontSize:13, color:C.dim, fontStyle:'italic' }}>No completed rounds yet.</span>
+        </div>
+      )}
+
+      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+        {completedRounds.map(n => {
+          const round = rounds[n];
+          const opp = teams.find(t => t.id === round.opponentId);
+          const ourTotal = (round.scores ?? []).reduce((s, sc) => s + (parseInt(sc.ourGP) || 0), 0);
+          const theirTotal = (round.scores ?? []).reduce((s, sc) => s + (parseInt(sc.theirGP) || 0), 0);
+          const result = ourTotal >= 55 ? 'W' : ourTotal <= 45 ? 'L' : 'D';
+          const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
+          return (
+            <div key={n} onClick={() => onSelect(n)} style={{
+              display:'flex', alignItems:'center', padding:'14px 16px', border:`1px solid ${C.bord}`,
+              cursor:'pointer', transition:'border-color 0.15s', gap:12
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
+              onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
+              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.dim, minWidth:70 }}>Round {n}</span>
+              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white, flex:1 }}>
+                {opp ? `vs ${opp.name}` : 'Unknown'}
+              </span>
+              <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── ROUND VIEW ──────────────────────────────────────────────────────────────
 
 function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix }) {
@@ -1588,6 +1831,8 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const [opponentId, setOpponentId] = useState(round.opponentId ?? '');
   const [scores, setScores] = useState(round.scores ?? Array.from({ length: 5 }, (_, i) => ({ table: i+1, ourVP:'', theirVP:'', ourGP:'', theirGP:'' })));
   const [inputMode, setInputMode] = useState('vp');
+  const [confirmSave, setConfirmSave] = useState(false);
+  const [editing, setEditing] = useState(!round.complete);
   const [selectedSuggestions, setSelectedSuggestions] = useState({});
   const opponent = teams.find(t => t.id === opponentId);
   const pairings = round.pairings ?? [];
@@ -1636,7 +1881,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           </p>
           <Tag block mb={10}>Opponent</Tag>
           <select value={opponentId} onChange={e => setOpponentId(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'8px 10px', fontSize:13, outline:'none', marginBottom:12 }}>
+            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
             <option value="">— Select Opponent —</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -1646,73 +1891,139 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
 
       {(round.opponentId || opponentId) && opponent && (
         <>
-          <div style={{ display:'flex', gap:8, marginBottom:16 }}>
-            <Btn sm gold={inputMode === 'vp'} ghost={inputMode !== 'vp'} onClick={() => setInputMode('vp')}>Enter VP</Btn>
-            <Btn sm gold={inputMode === 'gp'} ghost={inputMode !== 'gp'} onClick={() => setInputMode('gp')}>Enter Game Pts</Btn>
-          </div>
+          {/* Read-only summary for completed rounds */}
+          {round.complete && !editing && (
+            <>
+              <Tag block mb={12} color={C.dim}>Scores Submitted</Tag>
+              <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:16 }}>
+                {(round.scores ?? []).map((sc, idx) => {
+                  const pairing = pairings[idx];
+                  const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
+                  const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
+                  return (
+                    <div key={idx} style={{ display:'flex', alignItems:'center', padding:'10px 14px', border:`1px solid ${C.bord}`, gap:10 }}>
+                      <Tag color={C.dim}>T{idx + 1}</Tag>
+                      {usPlayer && <span style={{ fontSize:12, color:C.blue, flex:1 }}>{usPlayer.name} <span style={{ color:C.dim }}>vs</span> <span style={{ color:C.red }}>{themFaction}</span></span>}
+                      {!usPlayer && <span style={{ fontSize:12, color:C.dim, flex:1 }}>Table {idx + 1}</span>}
+                      {sc.ourVP !== '' && sc.ourVP !== undefined && <span style={{ fontSize:12, color:C.dim }}>VP: {sc.ourVP}-{sc.theirVP}</span>}
+                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                        {sc.ourGP}-{sc.theirGP}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+                <Tag color={C.gold}>Round Total</Tag>
+                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                  {ourTotal} - {theirTotal}
+                </span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                  {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
+                </span>
+              </div>
+              <Btn ghost full onClick={() => setEditing(true)}>Edit Scores</Btn>
+            </>
+          )}
 
-          <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
-            {scores.map((sc, idx) => {
-              const pairing = pairings[idx];
-              const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
-              const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
-              return (
-                <div key={idx} style={{ border:`1px solid ${C.bord}`, padding:'12px 14px' }}>
-                  <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
-                    <Tag color={C.dim}>Table {idx + 1}</Tag>
-                    {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
-                  </div>
-                  {inputMode === 'vp' ? (
-                    <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                      <div style={{ flex:1 }}>
-                        <Tag block mb={4} color={C.dim}>Our VP</Tag>
-                        <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                          style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'6px 8px', fontSize:13, fontFamily:'monospace', outline:'none' }} />
+          {/* Editable score entry */}
+          {editing && (
+            <>
+              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+                <Btn sm gold={inputMode === 'vp'} ghost={inputMode !== 'vp'} onClick={() => setInputMode('vp')}>Enter VP</Btn>
+                <Btn sm gold={inputMode === 'gp'} ghost={inputMode !== 'gp'} onClick={() => setInputMode('gp')}>Enter Game Pts</Btn>
+              </div>
+
+              <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:20 }}>
+                {scores.map((sc, idx) => {
+                  const pairing = pairings[idx];
+                  const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
+                  const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
+                  return (
+                    <div key={idx} style={{ border:`1px solid ${C.bord}`, padding:'12px 14px' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                        <Tag color={C.dim}>Table {idx + 1}</Tag>
+                        {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
                       </div>
-                      <div style={{ flex:1 }}>
-                        <Tag block mb={4} color={C.dim}>Their VP</Tag>
-                        <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                          style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'6px 8px', fontSize:13, fontFamily:'monospace', outline:'none' }} />
-                      </div>
-                      {sc.ourGP !== '' && sc.ourGP !== undefined && (
-                        <span style={{ fontFamily:'monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
-                          {sc.ourGP}-{sc.theirGP}
-                        </span>
+                      {inputMode === 'vp' ? (
+                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                          <div style={{ flex:1 }}>
+                            <Tag block mb={4} color={C.dim}>Our VP</Tag>
+                            <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
+                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <Tag block mb={4} color={C.dim}>Their VP</Tag>
+                            <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
+                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                          </div>
+                          {sc.ourGP !== '' && sc.ourGP !== undefined && (
+                            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
+                              {sc.ourGP}-{sc.theirGP}
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+                          <div style={{ flex:1 }}>
+                            <Tag block mb={4} color={C.dim}>Our GP</Tag>
+                            <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
+                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                          </div>
+                          <div style={{ flex:1 }}>
+                            <Tag block mb={4} color={C.dim}>Their GP</Tag>
+                            <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
+                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                          </div>
+                        </div>
                       )}
                     </div>
-                  ) : (
-                    <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                      <div style={{ flex:1 }}>
-                        <Tag block mb={4} color={C.dim}>Our GP</Tag>
-                        <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                          style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'6px 8px', fontSize:13, fontFamily:'monospace', outline:'none' }} />
+                  );
+                })}
+              </div>
+
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+                <Tag color={C.gold}>Round Total</Tag>
+                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                  {ourTotal} - {theirTotal}
+                </span>
+                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                  {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
+                </span>
+              </div>
+
+              {!confirmSave ? (
+                <Btn gold full onClick={() => setConfirmSave(true)}>Save Scores</Btn>
+              ) : (
+                <div style={{ border:`1px solid ${C.gold}`, padding:'16px', marginBottom:8 }}>
+                  <Cine size={14} weight={700} mb={12}>Confirm Scores</Cine>
+                  <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:14 }}>
+                    {scores.map((sc, idx) => (
+                      <div key={idx} style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:C.text }}>
+                        <span>Table {idx + 1}</span>
+                        {inputMode === 'vp' && sc.ourVP !== '' && <span style={{ color:C.dim }}>VP: {sc.ourVP} - {sc.theirVP}</span>}
+                        <span style={{ fontFamily:'IBM Plex Mono, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                          {sc.ourGP} - {sc.theirGP}
+                        </span>
                       </div>
-                      <div style={{ flex:1 }}>
-                        <Tag block mb={4} color={C.dim}>Their GP</Tag>
-                        <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                          style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'6px 8px', fontSize:13, fontFamily:'monospace', outline:'none' }} />
-                      </div>
-                    </div>
-                  )}
+                    ))}
+                  </div>
+                  <div style={{ textAlign:'center', marginBottom:14 }}>
+                    <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                      Total: {ourTotal} - {theirTotal} ({ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'})
+                    </span>
+                  </div>
+                  <div style={{ display:'flex', gap:10 }}>
+                    <Btn gold full onClick={() => { saveScores(); setConfirmSave(false); setEditing(false); }}>Confirm</Btn>
+                    <Btn ghost full onClick={() => setConfirmSave(false)}>Edit</Btn>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
-            <Tag color={C.gold}>Round Total</Tag>
-            <span style={{ fontFamily:'monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
-              {ourTotal} - {theirTotal}
-            </span>
-            <span style={{ fontFamily:'Cinzel, serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
-              {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
-            </span>
-          </div>
-
-          <Btn gold full onClick={saveScores}>Save Scores</Btn>
+              )}
+            </>
+          )}
 
           {/* Rating suggestions after round is complete */}
-          {round.complete && pairings.length > 0 && opponent && (() => {
+          {round.complete && !editing && pairings.length > 0 && opponent && (() => {
             const suggestions = [];
             (round.scores ?? []).forEach((sc, idx) => {
               const pairing = pairings[idx];
@@ -1765,7 +2076,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         border:`1px solid ${checked ? C.gold : C.bord}`, background:checked ? 'rgba(200,168,72,0.06)' : 'transparent'
                       }}>
                         <span style={{ fontSize:16, color:checked ? C.gold : C.dim }}>{checked ? '☑' : '☐'}</span>
-                        <span style={{ fontFamily:'Cinzel, serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
+                        <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
                         <span style={{ fontSize:12, color:C.dim }}>vs {s.faction}</span>
                         <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6 }}>
                           <Badge r={s.current} />
@@ -1819,15 +2130,58 @@ const SEED_EVENT = {
   matrix: JSON.parse(JSON.stringify(DEFAULT_MATRIX)),
   opponents: KENT_TEAMS,
   rounds: {},
+  scoringTable: JSON.parse(JSON.stringify(DEFAULT_SCORING_TABLE)),
 };
 
 // ─── ROOT ─────────────────────────────────────────────────────────────────────
 
 export default function App() {
-  const [screen, setScreen] = useState('events');
+  // Hash routing helpers
+  const parseHash = () => {
+    const h = window.location.hash.slice(1);
+    if (!h) return { eventId: null, screen: 'events' };
+    const parts = h.split('/');
+    if (parts[0] === 'events') return { eventId: null, screen: 'events' };
+    // e.g. #evt-kent-2026 or #evt-kent-2026/ratings
+    return { eventId: parts[0], screen: parts[1] || 'home' };
+  };
+
+  const setHash = (eventId, scr) => {
+    const h = eventId ? (scr === 'home' ? eventId : `${eventId}/${scr}`) : 'events';
+    if (window.location.hash !== '#' + h) window.location.hash = h;
+  };
+
+  const initial = parseHash();
+  const [screen, setScreenRaw] = useState(initial.screen);
+  const [pendingEventId, setPendingEventId] = useState(initial.eventId);
   const [events, setEvents] = useState([]);
   const [activeEvent, setActiveEvent] = useState(null);
   const [editEventData, setEditEventData] = useState(null);
+
+  const setScreen = (scr) => {
+    setScreenRaw(scr);
+    setHash(activeEvent?.id ?? null, scr);
+  };
+
+  // Listen for back/forward browser navigation
+  useEffect(() => {
+    const onHashChange = () => {
+      const { eventId, screen: scr } = parseHash();
+      if (!eventId) {
+        setActiveEvent(null);
+        setScreenRaw('events');
+      } else if (activeEvent && activeEvent.id === eventId) {
+        setScreenRaw(scr);
+      } else {
+        // Try to load from already-fetched events
+        const evt = events.find(e => e.id === eventId);
+        if (evt) { loadEvent(evt, scr); }
+        else { setPendingEventId(eventId); setScreenRaw(scr); }
+      }
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [activeEvent]);
 
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
@@ -1854,7 +2208,13 @@ export default function App() {
     fetch(`${FIREBASE_URL}/events.json`).then(r => r.json())
       .then(data => {
         if (data) {
-          setEvents(Object.values(data));
+          const list = Object.values(data);
+          setEvents(list);
+          // Restore active event from URL hash
+          if (pendingEventId) {
+            const evt = list.find(e => e.id === pendingEventId);
+            if (evt) { loadEvent(evt, screen); setPendingEventId(null); }
+          }
         } else {
           // Migration: seed from legacy data or defaults
           Promise.all([
@@ -1882,14 +2242,17 @@ export default function App() {
     return r;
   };
 
-  const loadEvent = (evt) => {
+  const loadEvent = (evt, targetScreen) => {
     setActiveEvent(evt);
     setMatrixData(evt.matrix ?? DEFAULT_MATRIX); matrix = evt.matrix ?? DEFAULT_MATRIX;
     setRoster(evt.roster ?? DEFAULT_RAGNAROK); RAGNAROK = evt.roster ?? DEFAULT_RAGNAROK;
     setOurTeamName(evt.teamName ?? DEFAULT_TEAM_NAME); teamName = evt.teamName ?? DEFAULT_TEAM_NAME;
     setTeams(evt.opponents ?? []);
     setRoundsData(normalizeRounds(evt.rounds));
-    setScreen('home');
+    scoringTable = evt.scoringTable ?? DEFAULT_SCORING_TABLE;
+    const scr = targetScreen || 'home';
+    setScreenRaw(scr);
+    setHash(evt.id, scr);
   };
 
   const saveEvent = (evt) => {
@@ -1909,6 +2272,7 @@ export default function App() {
   const saveMatrix = (m) => { setMatrixData(m); matrix = m; return saveEventField('matrix', m); };
   const saveRoster = (r, n) => { setRoster(r); RAGNAROK = r; setOurTeamName(n); teamName = n; return Promise.all([saveEventField('roster', r), saveEventField('teamName', n)]); };
   const saveOpponents = (t) => { setTeams(t); return saveEventField('opponents', t); };
+  const saveScoringTable = (t) => { scoringTable = t; return saveEventField('scoringTable', t); };
   const saveRounds = (r) => { setRoundsData(r); return saveEventField('rounds', r); };
   const saveDefs = (d) => { setDefsData(d); defs = d; return fetch(`${FIREBASE_URL}/defs.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(() => {}); };
   const saveFactions = (f) => { setFactionList(f); FACTIONS = f; return fetch(`${FIREBASE_URL}/factions.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f) }).then(() => {}); };
@@ -1920,13 +2284,15 @@ export default function App() {
   const handleDeleteOpponent = id => { saveOpponents(teams.filter(t => t.id !== id)); setEditTeam(null); setScreen('home'); };
 
   const handleSaveEvent = (evt) => { saveEvent(evt).then(() => { if (!activeEvent || activeEvent.id === evt.id) loadEvent(evt); else setScreen('events'); }); };
-  const handleDeleteEvent = (id) => { setEvents(prev => prev.filter(e => e.id !== id)); fetch(`${FIREBASE_URL}/events/${id}.json`, { method:'DELETE' }); setActiveEvent(null); setScreen('events'); };
+  const handleDeleteEvent = (id) => { setEvents(prev => prev.filter(e => e.id !== id)); fetch(`${FIREBASE_URL}/events/${id}.json`, { method:'DELETE' }); setActiveEvent(null); setScreenRaw('events'); setHash(null, 'events'); };
 
   const navProps = activeEvent ? {
     onRatings: () => setScreen('ratings'), onDefs: () => setScreen('defs'),
     onOurTeam: () => setScreen('ourteam'), onFactions: () => setScreen('factions'),
-    onEvents: () => { setActiveEvent(null); setScreen('events'); },
+    onEvents: () => { setActiveEvent(null); setScreenRaw('events'); setHash(null, 'events'); },
     onEditEvent: () => { setEditEventData(activeEvent); setScreen('eventEdit'); },
+    onEditRounds: () => setScreen('roundPicker'),
+    onScoringTable: () => setScreen('scoringTable'),
   } : { onDefs: () => setScreen('defs'), onFactions: () => setScreen('factions') };
 
   return (
@@ -1934,11 +2300,11 @@ export default function App() {
       <style>{CSS}</style>
       <NavBar {...navProps} activeEvent={activeEvent} />
 
-      {screen === 'events' && <EventList events={events} onSelect={loadEvent} onAdd={() => { setEditEventData(null); setScreen('eventSetup'); }} />}
+      {screen === 'events' && <EventList events={events} onSelect={loadEvent} onAdd={() => { setEditEventData(null); setScreen('eventSetup'); }} onDelete={handleDeleteEvent} onSettings={evt => { setEditEventData(evt); setScreen('eventEdit'); }} />}
       {screen === 'eventSetup' && <EventSetup events={events} onSave={handleSaveEvent} onBack={() => setScreen('events')} />}
-      {screen === 'eventEdit' && <EventSetup event={editEventData} events={events} onSave={handleSaveEvent} onDelete={handleDeleteEvent} onBack={() => setScreen('home')} />}
+      {screen === 'eventEdit' && <EventSetup event={editEventData} events={events} onSave={handleSaveEvent} onDelete={handleDeleteEvent} onBack={() => setScreen(activeEvent ? 'home' : 'events')} />}
 
-      {activeEvent && screen === 'home' && <Home teams={teams} rounds={roundsData} event={activeEvent} onSelect={t=>{setSelectedTeam(t);setScreen('matchup');}} onAdd={()=>{setEditTeam(null);setScreen('setup');}} onEdit={t=>{setEditTeam(t);setScreen('setup');}} onRound={n=>setScreen('round-'+n)} />}
+      {activeEvent && screen === 'home' && <Home teams={teams} rounds={roundsData} event={activeEvent} onSelect={t=>{setSelectedTeam(t);setScreen('matchup');}} onAdd={()=>{setEditTeam(null);setScreen('setup');}} onEdit={t=>{setEditTeam(t);setScreen('setup');}} onRound={n=>setScreen('round-'+n)} onBack={()=>{setActiveEvent(null);setScreenRaw('events');setHash(null,'events');}} />}
       {activeEvent && screen === 'setup' && <Setup team={editTeam} onSave={handleSaveOpponent} onDelete={handleDeleteOpponent} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'matchup' && <Matchup team={selectedTeam} onStart={()=>setScreen('pairing')} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'pairing' && <Pairing team={selectedTeam} onBack={()=>setScreen('matchup')} onComplete={(pairings) => {
@@ -1952,6 +2318,8 @@ export default function App() {
       {activeEvent && screen === 'defs' && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'ourteam' && <EditOurTeam roster={roster} currentTeamName={ourTeamName} onSave={saveRoster} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'factions' && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('home')} />}
+      {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
+      {activeEvent && screen === 'scoringTable' && <ScoringTableEditor table={activeEvent.scoringTable} onSave={saveScoringTable} onBack={()=>setScreen('home')} />}
       {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} />}
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
