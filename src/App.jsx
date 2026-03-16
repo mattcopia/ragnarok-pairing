@@ -19,17 +19,17 @@ const DEFAULT_FACTIONS = [
   'Daemons','Dark Angels','Death Guard','Deathwatch','Drukhari','Eldar',
   "Emperor's Children",'Gladius','Grey Knights','GSC','Imperial Guard',
   'Imperial Knights','Necrons','Orks','Other Marines','Sisters',
-  'Tau','Thousand Sons','Tyranids','Ultramarines','Votan','Wolves','World Eaters'
+  'Space Wolves','Tau','Thousand Sons','Tyranids','Ultramarines','Votan','World Eaters'
 ];
 
 let FACTIONS = [...DEFAULT_FACTIONS];
 
 const DEFAULT_MATRIX = {
-  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'?',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'PS','Grey Knights':'W++','Blood Angels':'W',Wolves:'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
-  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'PS',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'PS','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L',Wolves:'PS','Dark Angels':'L','Black Templars':'W+',Deathwatch:'?',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
-  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'PS','Ad Mech':'?','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-',Wolves:'PS','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
-  Ollie: {Daemons:'?','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'PS',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'PS',Votan:'W',Sisters:'PS',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L',Wolves:'PS','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'PS',Ultramarines:'W++','Other Marines':'W'},
-  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'W',CSM:'PS',Tau:'L',Orks:'W',Necrons:'PS',GSC:'PS',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'?','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'PS',Wolves:'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'?',Gladius:'W',Ultramarines:'?','Other Marines':'W++'},
+  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'?',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'PS','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
+  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'PS',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'PS','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'PS','Dark Angels':'L','Black Templars':'W+',Deathwatch:'?',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
+  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'PS','Ad Mech':'?','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'PS','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
+  Ollie: {Daemons:'?','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'PS',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'PS',Votan:'W',Sisters:'PS',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'PS','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'PS',Ultramarines:'W++','Other Marines':'W'},
+  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'W',CSM:'PS',Tau:'L',Orks:'W',Necrons:'PS',GSC:'PS',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'?','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'PS','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'?',Gladius:'W',Ultramarines:'?','Other Marines':'W++'},
 };
 
 const FIREBASE_URL = 'https://ragnarok-18886-default-rtdb.firebaseio.com';
@@ -187,6 +187,10 @@ const CSS = `
   /* Touch feedback for all interactive elements */
   button:active, [role="button"]:active { opacity: 0.8; }
   .tap-card:active { opacity: 0.9; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
 `;
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
@@ -214,7 +218,7 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
 }
 
 function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0 }) {
-  return <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
+  return <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word' }}>{children}</div>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
@@ -273,7 +277,7 @@ function RatingRow({ player, factions }) {
 // ─── RATINGS EDITOR ──────────────────────────────────────────────────────────
 
 function Ratings({ matrixData, onSave, onBack }) {
-  const [selected, setSelected] = useState(RAGNAROK[0].name);
+  const [selected, setSelected] = useState(RAGNAROK[0]?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
   const playerRatings = matrixData[selected] ?? {};
@@ -458,7 +462,7 @@ function Definitions({ defsData, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Definitions</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Definitions'}</Btn>
         <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
       </div>
     </div>
@@ -497,7 +501,7 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
         borderBottom:`1px solid ${C.bord}`, display:'flex', alignItems:'center',
         padding:'0 16px', height:52
       }}>
-        <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
+        <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {activeEvent ? activeEvent.name : 'Tactical Teams Console'}
         </div>
         <button onClick={() => setOpen(true)} style={{
@@ -588,9 +592,12 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
               </div>
             </div>
             <Tag block mb={4} color={C.dim}>Faction</Tag>
-            <input value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.text,
-                padding:'12px 12px', fontSize:14, outline:'none' }} />
+            <select value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
+              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim,
+                padding:'12px 12px', fontSize:14, outline:'none' }}>
+              <option value="">— Select Faction —</option>
+              {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
           </div>
         ))}
       </div>
@@ -600,7 +607,7 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
         {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
-      <Btn gold full onClick={handleSave}>Save Team</Btn>
+      <Btn gold full disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Team'}</Btn>
     </div>
   );
 }
@@ -660,7 +667,7 @@ function ManageFactions({ factionList, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Factions</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Factions'}</Btn>
         <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
       </div>
     </div>
@@ -890,7 +897,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 
 function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
-  const sorted = [...teams].sort((a, b) => a.name.localeCompare(b.name));
+  const sorted = [...(teams ?? [])].filter(t => t).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
   // Standings
   const completedRounds = Object.values(rounds).filter(r => r && r.complete);
@@ -922,30 +929,6 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
             ? <Cine size={22} weight={900} mb={12}>Round {nextRound}</Cine>
             : <Cine size={22} weight={900} mb={12}>Event Complete</Cine>;
         })()}
-        {completedRounds.length > 0 && (
-          <>
-            <div className="stat-row" style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
-              <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
-                <Tag color={C.dim}>W-D-L</Tag>
-              </div>
-              <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
-                <Tag color={C.dim}>Game Points</Tag>
-              </div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20, maxWidth:500, margin:'0 auto 20px' }}>
-              {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
-                <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.bord}`, background:C.surf, gap:10, marginBottom:4 }}>
-                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
-                  <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
-                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
-                  <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
         {completedRounds.length === 0 && (
           <p style={{ color:C.dim, fontSize:15, fontStyle:'italic' }}>
             Select your round opponent to view matchups and begin pairing
@@ -957,7 +940,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
-          const facs = t.players.map(p => p.faction);
+          const facs = (t.players ?? []).map(p => p?.faction ?? '?');
           return (
             <div key={t.id} className="tap-card" onClick={() => onSelect(t)} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s, opacity 0.1s',
               display:'flex', flexDirection:'column', gap:8 }}
@@ -1024,6 +1007,33 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
                 </div>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {/* Standings */}
+      {completedRounds.length > 0 && (
+        <>
+          <Divider label="Standings" />
+          <div className="stat-row" style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16, marginTop:12 }}>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
+              <Tag color={C.dim}>W-D-L</Tag>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
+              <Tag color={C.dim}>Game Points</Tag>
+            </div>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20 }}>
+            {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
+              <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.bord}`, background:C.surf, gap:10, marginBottom:4 }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
+                <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
+                <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -1098,7 +1108,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
 // ─── MATCHUP VIEW ─────────────────────────────────────────────────────────────
 
 function Matchup({ team, onStart, onBack }) {
-  const theirFacs = team.players.map(p => p.faction);
+  const theirFacs = (team?.players ?? []).map(p => p?.faction ?? '?');
 
   return (
     <div style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
@@ -1524,15 +1534,24 @@ function Pairing({ team, onBack, onComplete, onScores }) {
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
             <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
           </div>
+          {theirAtk.length === 1 ? (
+            (() => { if (acceptedTheirAtk === null) setTimeout(() => setAcceptedTheirAtk(theirAtk[0]), 0); return null; })()
+          ) : null}
+          {theirAtk.length === 1 && (
+            <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:12 }}>
+              <span style={{ fontSize:13, color:C.gold }}>Only 1 attacker — auto-selected.</span>
+            </div>
+          )}
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {theirAtk.map(i => {
               const p = team.players[i];
               const rat = gr(ourDefP.name, p.faction);
-              const isRec = i === bestTheirAtk;
+              const isRec = i === bestTheirAtk && theirAtk.length > 1;
               const sel = acceptedTheirAtk === i;
               return (
-                <div key={i} onClick={() => setAcceptedTheirAtk(sel ? null : i)} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
+                <div key={i} onClick={() => theirAtk.length > 1 && setAcceptedTheirAtk(sel ? null : i)} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  cursor:theirAtk.length > 1 ? 'pointer' : 'default',
                   borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
@@ -1549,20 +1568,29 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
         {/* Our attacker vs their defender */}
         <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px 18px', marginBottom:18 }}>
-          <Tag color={C.gold} block mb={10}>Our Attacker vs Their Defender</Tag>
+          <Tag color={C.gold} block mb={10}>Pick Your Attacker</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
             Their defender: <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.name}</span>
             <span style={{ color:C.dim, fontStyle:'italic' }}> ({theirDefP.faction})</span>
           </div>
+          {ourAtk.length === 1 ? (
+            (() => { if (chosenOurAtk === null) setTimeout(() => setChosenOurAtk(ourAtk[0]), 0); return null; })()
+          ) : null}
+          {ourAtk.length === 1 && (
+            <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, marginBottom:12 }}>
+              <span style={{ fontSize:13, color:C.gold }}>Only 1 attacker — auto-selected.</span>
+            </div>
+          )}
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {ourAtk.map(i => {
               const r = RAGNAROK[i];
               const rat = gr(r.name, theirDefP.faction);
-              const isRec = i === bestOurAtk;
+              const isRec = i === bestOurAtk && ourAtk.length > 1;
               const sel = chosenOurAtk === i;
               return (
-                <div key={i} onClick={() => setChosenOurAtk(sel ? null : i)} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
+                <div key={i} onClick={() => ourAtk.length > 1 && setChosenOurAtk(sel ? null : i)} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  cursor:ourAtk.length > 1 ? 'pointer' : 'default',
                   borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
@@ -1811,7 +1839,7 @@ function ScoringTableEditor({ table, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Table</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Table'}</Btn>
         <Btn ghost sm onClick={handleReset}>Reset to Default</Btn>
       </div>
     </div>
@@ -1886,13 +1914,18 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
     const next = [...scores];
     next[idx] = { ...next[idx], [field]: value };
     if (inputMode === 'vp') {
-      const ov = parseInt(field === 'ourVP' ? value : next[idx].ourVP);
-      const tv = parseInt(field === 'theirVP' ? value : next[idx].theirVP);
-      if (!isNaN(ov) && !isNaN(tv)) {
+      const ov = Math.max(0, Math.min(100, parseInt(field === 'ourVP' ? value : next[idx].ourVP, 10) || 0));
+      const tv = Math.max(0, Math.min(100, parseInt(field === 'theirVP' ? value : next[idx].theirVP, 10) || 0));
+      if (next[idx].ourVP !== '' && next[idx].theirVP !== '') {
         const [og, tg] = vpToGP(ov, tv);
         next[idx].ourGP = og;
         next[idx].theirGP = tg;
       }
+    } else {
+      const og = Math.max(0, Math.min(20, parseInt(next[idx].ourGP, 10) || 0));
+      const tg = Math.max(0, Math.min(20, parseInt(next[idx].theirGP, 10) || 0));
+      next[idx].ourGP = next[idx].ourGP === '' ? '' : og;
+      next[idx].theirGP = next[idx].theirGP === '' ? '' : tg;
     }
     setScores(next);
   };
@@ -1903,7 +1936,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   };
 
   const saveScores = () => {
-    const complete = scores.every(s => (s.ourGP !== '' && s.theirGP !== ''));
+    const complete = scores.every(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10)));
     const updated = { ...rounds, [roundNum]: { ...round, opponentId: round.opponentId || opponentId, scores, complete } };
     onSave(updated);
   };
@@ -1986,9 +2019,18 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
                   return (
                     <div key={idx} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'12px 14px' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, flexWrap:'wrap', gap:4 }}>
                         <Tag color={C.dim}>Table {idx + 1}</Tag>
-                        {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
+                        {usPlayer ? (
+                          <span style={{ fontSize:13, fontFamily:'Chakra Petch, sans-serif' }}>
+                            <span style={{ color:C.gold, fontWeight:600 }}>{usPlayer.name}</span>
+                            <span style={{ color:C.dim }}> ({usPlayer.faction})</span>
+                            <span style={{ color:C.dim }}> vs </span>
+                            <span style={{ color:C.slate, fontWeight:600 }}>{themFaction}</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>No pairing data</span>
+                        )}
                       </div>
                       {inputMode === 'vp' ? (
                         <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
@@ -2303,7 +2345,7 @@ export default function App() {
   const saveEvent = (evt) => {
     const updated = events.find(e => e.id === evt.id) ? events.map(e => e.id === evt.id ? evt : e) : [...events, evt];
     setEvents(updated);
-    return fetch(`${FIREBASE_URL}/events/${evt.id}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(evt) }).then(() => {});
+    return fetch(`${FIREBASE_URL}/events/${evt.id}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(evt) }).then(() => {}).catch(() => {});
   };
 
   const saveEventField = (field, value) => {
@@ -2311,7 +2353,7 @@ export default function App() {
     const updated = { ...activeEvent, [field]: value };
     setActiveEvent(updated);
     setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
-    return fetch(`${FIREBASE_URL}/events/${activeEvent.id}/${field}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(value) }).then(() => {});
+    return fetch(`${FIREBASE_URL}/events/${activeEvent.id}/${field}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(value) }).then(() => {}).catch(() => {});
   };
 
   const saveMatrix = (m) => { setMatrixData(m); matrix = m; return saveEventField('matrix', m); };
@@ -2319,8 +2361,8 @@ export default function App() {
   const saveOpponents = (t) => { setTeams(t); return saveEventField('opponents', t); };
   const saveScoringTable = (t) => { scoringTable = t; return saveEventField('scoringTable', t); };
   const saveRounds = (r) => { setRoundsData(r); return saveEventField('rounds', r); };
-  const saveDefs = (d) => { setDefsData(d); defs = d; return fetch(`${FIREBASE_URL}/defs.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(() => {}); };
-  const saveFactions = (f) => { setFactionList(f); FACTIONS = f; return fetch(`${FIREBASE_URL}/factions.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f) }).then(() => {}); };
+  const saveDefs = (d) => { setDefsData(d); defs = d; return fetch(`${FIREBASE_URL}/defs.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(() => {}).catch(() => {}); };
+  const saveFactions = (f) => { setFactionList(f); FACTIONS = f; return fetch(`${FIREBASE_URL}/factions.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f) }).then(() => {}).catch(() => {}); };
 
   const handleSaveOpponent = team => {
     const updated = teams.find(t => t.id === team.id) ? teams.map(t => t.id === team.id ? team : t) : [...teams, team];
@@ -2359,7 +2401,19 @@ export default function App() {
           saveRounds({ ...roundsData, [roundNum]: { ...roundsData[roundNum], pairings: mapped } });
         }
       }} onScores={() => {
-        const roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+        let roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+        if (!roundNum) {
+          // Find first unassigned round and assign this opponent
+          const numR = activeEvent?.numRounds ?? 5;
+          for (let n = 1; n <= numR; n++) {
+            if (!roundsData[n]?.opponentId) {
+              roundNum = String(n);
+              const updated = { ...roundsData, [n]: { ...roundsData[n], opponentId: selectedTeam.id } };
+              saveRounds(updated);
+              break;
+            }
+          }
+        }
         if (roundNum) setScreen('round-' + roundNum);
         else setScreen('home');
       }} />}
