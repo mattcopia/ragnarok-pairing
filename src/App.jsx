@@ -1174,7 +1174,7 @@ function Matchup({ team, onStart, onBack }) {
 
 const PHASES = ['our_def','their_def','our_atk','their_atk','resolve','cycle_done'];
 
-function Pairing({ team, onBack, onComplete }) {
+function Pairing({ team, onBack, onComplete, onScores }) {
   const [ourPool,  setOurPool]  = useState([0,1,2,3,4]);
   const [theirPool, setTheirPool] = useState([0,1,2,3,4]);
   const [pairings, setPairings] = useState([]);
@@ -1303,7 +1303,7 @@ function Pairing({ team, onBack, onComplete }) {
         <Tag block mb={8}>Step 1 · Choose Defender</Tag>
         <Cine size={20} weight={900} mb={6}>Select Your Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:20 }}>
-          Ranked by average matchup score vs their remaining players. Pick secretly.
+          Choose secretly. Ranked by average matchup score vs their remaining players.
         </p>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {defRecs.map((i, rank) => {
@@ -1365,7 +1365,9 @@ function Pairing({ team, onBack, onComplete }) {
           <Cine size={13}>{RAGNAROK[ourDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{RAGNAROK[ourDef].faction}</div>
         </div>
-        <Tag block mb={10} color={C.dim}>Their defender is…</Tag>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.gold}`, background:'rgba(200,136,56,0.04)', marginBottom:14 }}>
+          <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.gold }}>Your input needed — select their revealed defender</span>
+        </div>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {theirPool.map(i => {
             const p = team.players[i];
@@ -1396,6 +1398,13 @@ function Pairing({ team, onBack, onComplete }) {
   function PhaseOurAtk() {
     const atkRecs = [...ourPool].filter(i => i !== ourDef)
       .sort((a, b) => gs(RAGNAROK[b].name, theirDefFac||'') - gs(RAGNAROK[a].name, theirDefFac||''));
+    const autoSelected = atkRecs.length <= maxOurAtk;
+
+    // Auto-select if only exact number of choices available
+    if (autoSelected && ourAtk.length !== atkRecs.length) {
+      setTimeout(() => setOurAtk(atkRecs), 0);
+    }
+
     return (
       <>
         <Tag block mb={8}>Step 2 · Attackers</Tag>
@@ -1405,20 +1414,26 @@ function Pairing({ team, onBack, onComplete }) {
           <Cine size={13}>{team.players[theirDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{team.players[theirDef].faction}</div>
         </div>
-        <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:14 }}>
-          Pick {maxOurAtk} to attack their defender. Ranked by matchup vs their faction.
-        </p>
+        {autoSelected ? (
+          <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:14 }}>
+            <span style={{ fontSize:13, color:C.gold }}>Only {atkRecs.length} player{atkRecs.length > 1 ? 's' : ''} available — auto-selected.</span>
+          </div>
+        ) : (
+          <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:14 }}>
+            Pick {maxOurAtk} to attack their defender. Ranked by matchup vs their faction.
+          </p>
+        )}
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
           {atkRecs.map((i, rank) => {
             const r = RAGNAROK[i];
             const rat = gr(r.name, theirDefFac||'');
             const sel = ourAtk.includes(i);
             return (
-              <div key={i} onClick={() => toggleOurAtk(i)} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
+              <div key={i} onClick={() => !autoSelected && toggleOurAtk(i)} style={{
+                display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
+                cursor:autoSelected ? 'default' : 'pointer',
                 borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
-                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
                 <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
@@ -1439,6 +1454,13 @@ function Pairing({ team, onBack, onComplete }) {
 
   // Phase: enter their attackers
   function PhaseTheirAtk() {
+    const available = theirPool.filter(i => i !== theirDef);
+    const autoSelected = available.length <= maxTheirAtk;
+
+    if (autoSelected && theirAtk.length !== available.length) {
+      setTimeout(() => setTheirAtk(available), 0);
+    }
+
     return (
       <>
         <Tag block mb={8}>Step 2 · Reveal</Tag>
@@ -1447,14 +1469,20 @@ function Pairing({ team, onBack, onComplete }) {
           <Tag color={C.blue} block mb={5}>Your Defender Faces</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name} — select who they're sending</Cine>
         </div>
+        {autoSelected && (
+          <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:14 }}>
+            <span style={{ fontSize:13, color:C.slate }}>Only {available.length} opponent{available.length > 1 ? 's' : ''} remaining — auto-selected.</span>
+          </div>
+        )}
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
-          {theirPool.filter(i => i !== theirDef).map(i => {
+          {available.map(i => {
             const p = team.players[i];
             const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirAtk.includes(i);
             return (
-              <div key={i} onClick={() => toggleTheirAtk(i)} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
+              <div key={i} onClick={() => !autoSelected && toggleTheirAtk(i)} style={{
+                display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
+                cursor:autoSelected ? 'default' : 'pointer',
                 borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
@@ -1580,7 +1608,8 @@ function Pairing({ team, onBack, onComplete }) {
               </div>
             ))}
           </div>
-          <Btn gold onClick={onBack} full>← Back to Teams</Btn>
+          {onScores && <Btn gold onClick={onScores} full style={{ marginBottom:10 }}>Enter Scores →</Btn>}
+          <Btn ghost onClick={onBack} full>← Back to Dashboard</Btn>
         </>
       );
     }
@@ -2329,6 +2358,10 @@ export default function App() {
           const mapped = pairings.map((p, i) => ({ table: i + 1, usIdx: p.us.id, themIdx: selectedTeam.players.indexOf(p.them) }));
           saveRounds({ ...roundsData, [roundNum]: { ...roundsData[roundNum], pairings: mapped } });
         }
+      }} onScores={() => {
+        const roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+        if (roundNum) setScreen('round-' + roundNum);
+        else setScreen('home');
       }} />}
       {activeEvent && screen === 'ratings' && <Ratings matrixData={matrixData} onSave={saveMatrix} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'defs' && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('home')} />}
