@@ -154,6 +154,7 @@ const C = {
   text:'#b0a898', dim:'#908878', white:'#e8dcd0',
   blue:'#5090d0', red:'#e04848', green:'#80d040',
   redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
+  redDark:'#1a0a08', redLight:'#e08080', amberDark:'#5a4010', amberMid:'#c08040',
   purple:'#9070b0',
 };
 
@@ -187,14 +188,14 @@ const CSS = `
 function Badge({ r }) {
   return (
     <span style={{ display:'inline-block', padding:'4px 10px', background:BG_COL[r]??'#141210',
-      color:FG_COL[r]??'#807868', fontSize:12, fontWeight:700, fontFamily:'Source Code Pro, monospace',
+      color:FG_COL[r]??C.dim, fontSize:12, fontWeight:700, fontFamily:'Source Code Pro, monospace',
       minWidth:36, textAlign:'center', letterSpacing:0.5, borderLeft:`2px solid ${BD_COL[r]??'#4a4438'}` }}>
       {r ?? '?'}
     </span>
   );
 }
 
-function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? '#b09030' : s >= 1 ? '#c08040' : C.red; }
+function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? C.goldD : s >= 1 ? C.amberMid : C.red; }
 
 function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   return (
@@ -218,7 +219,7 @@ function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {}
     <button onClick={!disabled ? onClick : undefined} style={{
       border:`1px solid ${brd}`, color:col, background:bg,
       padding:sm ? '12px 16px' : '14px 22px',
-      fontSize:sm ? 12 : 12, letterSpacing:2.5,
+      fontSize:12, letterSpacing:2.5,
       fontFamily:'Chakra Petch, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
       cursor:disabled ? 'not-allowed' : 'pointer',
       opacity:disabled ? 0.3 : 1, width:full ? '100%' : undefined, ...s
@@ -322,7 +323,7 @@ function Ratings({ matrixData, onSave, onBack }) {
           const mod = changed(r.name);
           return (
             <button key={r.id} onClick={() => setSelected(r.name)} style={{
-              border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.1)' : 'transparent',
+              borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
               color:sel ? C.gold : C.text, padding:'8px 14px', cursor:'pointer',
               fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
               position:'relative'
@@ -342,9 +343,9 @@ function Ratings({ matrixData, onSave, onBack }) {
           const isChanged = r !== def;
           return (
             <div key={f} onClick={() => cycle(f)} style={{
-              display:'flex', alignItems:'center', gap:12, padding:'9px 14px', cursor:'pointer',
-              border:`1px solid ${isChanged ? C.goldD : C.bord}`,
-              background:isChanged ? 'rgba(200,168,72,0.04)' : 'transparent',
+              display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
+              borderLeft:`3px solid ${isChanged ? C.goldD : C.bord}`,
+              background:isChanged ? C.surf : 'transparent',
               transition:'border-color 0.12s'
             }}>
               <div style={{ flex:1 }}>
@@ -411,8 +412,8 @@ function Definitions({ defsData, onSave, onBack }) {
           const def = DEFAULT_DEFS[key] ?? {};
           const changed = d.label !== def.label || d.score !== def.score || d.desc !== def.desc;
           return (
-            <div key={key} style={{ border:`1px solid ${changed ? C.goldD : C.bord}`, padding:'14px 16px',
-              background:changed ? 'rgba(200,168,72,0.04)' : 'transparent' }}>
+            <div key={key} style={{ borderLeft:`3px solid ${changed ? C.goldD : C.bord}`, padding:'14px 16px',
+              background:changed ? C.surf : 'transparent' }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
                 <Badge r={key} />
                 <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
@@ -570,7 +571,7 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:24 }}>
         {players.map((p, i) => (
-          <div key={i} style={{ border:`1px solid ${C.bord}`, padding:'14px 16px' }}>
+          <div key={i} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px' }}>
             <Tag block mb={6} color={C.dim}>Player {i + 1}</Tag>
             <div style={{ display:'flex', gap:10, marginBottom:8 }}>
               <div style={{ flex:1 }}>
@@ -712,10 +713,10 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
         </div>
 
         {isConfirming && (
-          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:'rgba(192,80,80,0.06)' }}>
+          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:'rgba(168,48,48,0.06)' }}>
             <p style={{ fontSize:13, color:C.dim, marginBottom:12 }}>Delete {evt.name}? This cannot be undone.</p>
             <div style={{ display:'flex', gap:10 }}>
-              <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+              <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                 Yes, Delete
               </Btn>
               <Btn ghost full onClick={() => setConfirmDel(null)}>Cancel</Btn>
@@ -863,12 +864,12 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
       {event && onDelete && (
         <div style={{ marginTop:24, borderTop:`1px solid ${C.bord}`, paddingTop:20 }}>
           {!confirmDel ? (
-            <Btn ghost sm full onClick={() => setConfirmDel(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
+            <Btn ghost sm full onClick={() => setConfirmDel(true)} style={{ color:C.red, borderColor:C.redBord }}>
               Delete Event
             </Btn>
           ) : (
             <div style={{ display:'flex', gap:10 }}>
-              <Btn sm full onClick={() => onDelete(event.id)} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+              <Btn sm full onClick={() => onDelete(event.id)} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                 Confirm Delete
               </Btn>
               <Btn ghost sm full onClick={() => setConfirmDel(false)}>Cancel</Btn>
@@ -1065,17 +1066,17 @@ function Setup({ team, onSave, onDelete, onBack }) {
       {team && (
         <div style={{ marginTop:24, borderTop:`1px solid ${C.bord}`, paddingTop:20 }}>
           {!confirmDelete ? (
-            <Btn ghost full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
+            <Btn ghost full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:C.redBord }}>
               Remove Team
             </Btn>
           ) : (
-            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:'rgba(192,80,80,0.06)' }}>
+            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:'rgba(168,48,48,0.06)' }}>
               <Cine size={14} weight={700} color={C.red} mb={8}>Remove {team.name}?</Cine>
               <p style={{ fontSize:13, color:C.dim, marginBottom:16 }}>
                 This will permanently remove this opponent team. Any round data linked to them will remain but won't show the team name.
               </p>
               <div style={{ display:'flex', gap:10 }}>
-                <Btn full onClick={() => { onDelete(team.id); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+                <Btn full onClick={() => { onDelete(team.id); }} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                   Yes, Remove
                 </Btn>
                 <Btn ghost full onClick={() => setConfirmDelete(false)}>Cancel</Btn>
@@ -1254,7 +1255,7 @@ function Pairing({ team, onBack, onComplete }) {
   }
 
   const sideColor = { paired:C.dim, defender:C.blue, attacker:C.gold, pool:C.text };
-  const sideBorder = { paired:C.bord, defender:C.slateDim, attacker:'#5a4010', pool:C.bord };
+  const sideBorder = { paired:C.bord, defender:C.slateDim, attacker:C.amberDark, pool:C.bord };
 
   const sidebar = (
     <div className="pair-sidebar">
@@ -1305,7 +1306,7 @@ function Pairing({ team, onBack, onComplete }) {
             const sel = ourDef === i;
             const exp = expanded === i;
             return (
-              <div key={i} style={{ border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent', transition:'border-color 0.12s' }}>
+              <div key={i} style={{ borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent', transition:'border-color 0.12s' }}>
                 <div onClick={() => setOurDef(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
@@ -1367,10 +1368,10 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => setTheirDef(sel ? null : i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(168,48,48,0.06)' : 'transparent'
+                borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
+                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                   <span style={{ fontSize:12, color:C.dim }}>we rate this</span>
@@ -1409,7 +1410,7 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => toggleOurAtk(i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent'
+                borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
                 <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
@@ -1448,10 +1449,10 @@ function Pairing({ team, onBack, onComplete }) {
             return (
               <div key={i} onClick={() => toggleTheirAtk(i)} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(168,48,48,0.06)' : 'transparent'
+                borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
+                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                   <span style={{ fontSize:12, color:C.dim }}>our matchup</span>
@@ -1498,7 +1499,7 @@ function Pairing({ team, onBack, onComplete }) {
               return (
                 <div key={i} onClick={() => setAcceptedTheirAtk(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent',
+                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
                   {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
@@ -1528,7 +1529,7 @@ function Pairing({ team, onBack, onComplete }) {
               return (
                 <div key={i} onClick={() => setChosenOurAtk(sel ? null : i)} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,136,56,0.04)' : 'transparent',
+                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
                   {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
@@ -1677,7 +1678,7 @@ function Pairing({ team, onBack, onComplete }) {
           <Divider label="Confirmed Pairings" />
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
             {pairings.map((p, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', padding:'9px 14px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
                 <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
                   <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
@@ -1748,7 +1749,7 @@ function ScoringTableEditor({ table, onSave, onBack }) {
 
       <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20 }}>
         {local.map((row, idx) => (
-          <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}` }}>
+          <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'10px 12px', borderLeft:`3px solid ${C.bord}`, background:C.surf }}>
             <div style={{ flex:1, display:'flex', gap:4, alignItems:'center' }}>
               <input type="number" min="0" value={row.min} onChange={e => update(idx, 'min', e.target.value)}
                 style={{ width:50, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
@@ -1922,7 +1923,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   );
                 })}
               </div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
                 <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
@@ -1949,7 +1950,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
                   const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
                   return (
-                    <div key={idx} style={{ border:`1px solid ${C.bord}`, padding:'12px 14px' }}>
+                    <div key={idx} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'12px 14px' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
                         <Tag color={C.dim}>Table {idx + 1}</Tag>
                         {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
@@ -1991,7 +1992,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                 })}
               </div>
 
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
                 <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
@@ -2082,7 +2083,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                     return (
                       <div key={s.key} onClick={() => toggleSuggestion(s.key)} style={{
                         display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                        border:`1px solid ${checked ? C.gold : C.bord}`, background:checked ? 'rgba(200,168,72,0.06)' : 'transparent'
+                        borderLeft:`3px solid ${checked ? C.gold : C.bord}`, background:checked ? C.surf : 'transparent'
                       }}>
                         <span style={{ fontSize:16, color:checked ? C.gold : C.dim }}>{checked ? '☑' : '☐'}</span>
                         <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
