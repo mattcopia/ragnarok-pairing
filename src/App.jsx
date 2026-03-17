@@ -2066,7 +2066,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
 
 // ─── ROUND VIEW ──────────────────────────────────────────────────────────────
 
-function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix, numRounds, onRound }) {
+function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix, numRounds, onRound, onMatchup }) {
   const round = rounds[roundNum] ?? {};
   const pairings = round.pairings ?? [];
   const [opponentId, setOpponentId] = useState(round.opponentId ?? '');
@@ -2178,6 +2178,16 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
 
       {(round.opponentId || opponentId) && opponent && (
         <>
+          {/* Not started — offer to begin pairing or enter scores directly */}
+          {!round.complete && !round.scores && onMatchup && (
+            <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
+              <Btn gold full onClick={() => onMatchup(opponent)}>View Matchups & Begin Pairing →</Btn>
+              <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', textAlign:'center' }}>
+                Or scroll down to enter scores manually
+              </p>
+            </div>
+          )}
+
           {/* Read-only summary for completed rounds */}
           {round.complete && !editing && (
             <>
@@ -3055,7 +3065,7 @@ export default function App() {
       }} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'scoringTable' && <ScoringTableEditor table={activeEvent.scoringTable} onSave={saveScoringTable} onBack={()=>setScreen('home')} />}
-      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} />}
+      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} onMatchup={t => { setSelectedTeam(t); setScreen('matchup'); }} />}
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
       {!activeEvent && (screen === 'factions') && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('events')} />}
