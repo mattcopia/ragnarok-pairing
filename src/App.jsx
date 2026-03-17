@@ -931,7 +931,10 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 
 function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
-  const sorted = [...(teams ?? [])].filter(t => t).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  const [confirmPlayed, setConfirmPlayed] = useState(null);
+  const playedIds = new Set(Object.values(rounds).filter(r => r?.opponentId).map(r => r.opponentId));
+  const allTeams = [...(teams ?? [])].filter(t => t).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  const sorted = [...allTeams.filter(t => !playedIds.has(t.id)), ...allTeams.filter(t => playedIds.has(t.id))];
 
   // Standings
   const completedRounds = Object.values(rounds).filter(r => r && r.complete);
@@ -975,12 +978,23 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
           const facs = (t.players ?? []).map(p => p?.faction ?? '?');
+          const played = playedIds.has(t.id);
+          const handleSelect = () => {
+            if (played) setConfirmPlayed(t);
+            else onSelect(t);
+          };
           return (
-            <div key={t.id} className="tap-card" {...clickable(() => onSelect(t))} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1), opacity 0.12s',
-              display:'flex', flexDirection:'column', gap:8 }}
-              onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.slate}
-              onMouseLeave={e => e.currentTarget.style.borderLeftColor = C.bord}>
-              <Cine size={14} weight={700}>{t.name}</Cine>
+            <div key={t.id} className="tap-card" {...clickable(handleSelect)} style={{
+              borderLeft:`3px solid ${played ? C.greenBord : C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer',
+              transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1), opacity 0.12s',
+              display:'flex', flexDirection:'column', gap:8, opacity:played ? 0.6 : 1
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderLeftColor = played ? C.greenBord : C.slate}
+              onMouseLeave={e => e.currentTarget.style.borderLeftColor = played ? C.greenBord : C.bord}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <Cine size={14} weight={700}>{t.name}</Cine>
+                {played && <span style={{ color:C.green, fontSize:16 }}>✓</span>}
+              </div>
               <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
                 {facs.map((f, i) => (
                   <span key={i} style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{f}{i < facs.length - 1 ? ',' : ''}</span>
@@ -1004,6 +1018,20 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           <Tag color={C.dim}>Add Opponent</Tag>
         </div>
       </div>
+
+      {/* Already played warning */}
+      {confirmPlayed && (
+        <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px', marginTop:12 }}>
+          <Cine size={14} weight={700} mb={8} color={C.gold}>Already Played</Cine>
+          <p style={{ fontSize:13, color:C.dim, marginBottom:14 }}>
+            You've already faced {confirmPlayed.name} in a previous round. Are you sure you want to view this matchup again?
+          </p>
+          <div style={{ display:'flex', gap:10 }}>
+            <Btn gold full onClick={() => { onSelect(confirmPlayed); setConfirmPlayed(null); }}>Yes, Continue</Btn>
+            <Btn ghost full onClick={() => setConfirmPlayed(null)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
 
       {/* Rounds */}
       {event && (
@@ -1995,7 +2023,10 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           <select value={opponentId} onChange={e => setOpponentId(e.target.value)}
             style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
             <option value="">— Select Opponent —</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {teams.map(t => {
+              const alreadyPlayed = Object.values(rounds).some(r => r?.opponentId === t.id);
+              return <option key={t.id} value={t.id}>{t.name}{alreadyPlayed ? ' ✓ (played)' : ''}</option>;
+            })}
           </select>
           <Btn gold full disabled={!opponentId} onClick={assignOpponent}>Assign Opponent</Btn>
         </div>
