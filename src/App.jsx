@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -155,6 +155,7 @@ const C = {
   blue:'#5090d0', red:'#e04848', green:'#80d040',
   redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
   redDark:'#1a0a08', redLight:'#e08080', amberDark:'#5a4010', amberMid:'#c08040',
+  input:'#0c0a08',
   purple:'#9070b0',
 };
 
@@ -188,10 +189,20 @@ const CSS = `
   button:active, [role="button"]:active { opacity: 0.8; }
   .tap-card:active { opacity: 0.9; }
 
+  /* Focus indicators — !important overrides inline outline:none */
+  *:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 2px; }
+  input:focus-visible, select:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 0; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 `;
+
+// Keyboard handler for interactive divs
+const clickable = (onClick) => ({
+  onClick, role:'button', tabIndex:0,
+  onKeyDown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } }
+});
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 
@@ -217,8 +228,8 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   );
 }
 
-function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0 }) {
-  return <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word' }}>{children}</div>;
+function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0, as: Tag2 = 'div' }) {
+  return <Tag2 style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word', margin:0 }}>{children}</Tag2>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
@@ -321,7 +332,7 @@ function Ratings({ matrixData, onSave, onBack }) {
     <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Player Rankings</Tag>
-      <Cine size={24} weight={900} mb={6}>Edit Rankings</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Edit Rankings</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Tap a rating to cycle: W++ → W+ → W → W- → PS → ? → L- → L → L+
       </p>
@@ -352,7 +363,7 @@ function Ratings({ matrixData, onSave, onBack }) {
           const def = DEFAULT_MATRIX[selected]?.[f] ?? '?';
           const isChanged = r !== def;
           return (
-            <div key={f} onClick={() => cycle(f)} style={{
+            <div key={f} {...clickable(() => cycle(f))} style={{
               display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
               borderLeft:`3px solid ${isChanged ? C.goldD : C.bord}`,
               background:isChanged ? C.surf : 'transparent',
@@ -371,8 +382,8 @@ function Ratings({ matrixData, onSave, onBack }) {
 
       {/* Status + actions */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -411,7 +422,7 @@ function Definitions({ defsData, onSave, onBack }) {
     <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Scoring System</Tag>
-      <Cine size={24} weight={900} mb={6}>Rating Definitions</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Rating Definitions</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Edit labels, scores, and descriptions for each rating tier.
       </p>
@@ -432,7 +443,7 @@ function Definitions({ defsData, onSave, onBack }) {
                 <div>
                   <Tag block mb={4} color={C.dim}>Label</Tag>
                   <input value={d.label ?? ''} onChange={e => update(key, 'label', e.target.value)}
-                    style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                    style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
                       padding:'8px 10px', fontSize:13, fontFamily:'Chakra Petch, sans-serif', outline:'none' }} />
                 </div>
                 <div style={{ display:'flex', gap:10 }}>
@@ -440,14 +451,14 @@ function Definitions({ defsData, onSave, onBack }) {
                     <Tag block mb={4} color={C.dim}>Score</Tag>
                     <input type="number" step="0.5" min="0" max="5" value={d.score ?? 0}
                       onChange={e => update(key, 'score', parseFloat(e.target.value) || 0)}
-                      style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                      style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
                         padding:'8px 10px', fontSize:13, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                   </div>
                 </div>
                 <div>
                   <Tag block mb={4} color={C.dim}>Description</Tag>
                   <input value={d.desc ?? ''} onChange={e => update(key, 'desc', e.target.value)}
-                    style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.text,
+                    style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.text,
                       padding:'12px 12px', fontSize:14, outline:'none' }} />
                 </div>
               </div>
@@ -457,8 +468,8 @@ function Definitions({ defsData, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -568,14 +579,14 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Our Team</Tag>
-      <Cine size={24} weight={900} mb={6}>Edit Our Team</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Edit Our Team</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Update team name, player names and factions.
       </p>
 
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)}
-        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
           padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
@@ -587,13 +598,13 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
               <div style={{ flex:1 }}>
                 <Tag block mb={4} color={C.dim}>Name</Tag>
                 <input value={p.name} onChange={e => update(i, 'name', e.target.value)}
-                  style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+                  style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
                     padding:'8px 10px', fontSize:14, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, outline:'none' }} />
               </div>
             </div>
             <Tag block mb={4} color={C.dim}>Faction</Tag>
             <select value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim,
+              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim,
                 padding:'12px 12px', fontSize:14, outline:'none' }}>
               <option value="">— Select Faction —</option>
               {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
@@ -603,8 +614,8 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <Btn gold full disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Team'}</Btn>
@@ -640,7 +651,7 @@ function ManageFactions({ factionList, onSave, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Faction List</Tag>
-      <Cine size={24} weight={900} mb={6}>Manage Factions</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Manage Factions</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Add, remove, or rename factions. These appear in opponent setup and the ratings editor.
       </p>
@@ -649,7 +660,7 @@ function ManageFactions({ factionList, onSave, onBack }) {
         {local.map((f, i) => (
           <div key={i} style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input value={f} onChange={e => update(i, e.target.value)}
-              style={{ flex:1, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+              style={{ flex:1, background:C.input, border:`1px solid ${C.bord}`, color:C.white,
                 padding:'12px 12px', fontSize:14, outline:'none' }} />
             <button onClick={() => remove(i)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
@@ -662,8 +673,8 @@ function ManageFactions({ factionList, onSave, onBack }) {
       <Btn ghost sm onClick={add} style={{ marginBottom:20 }}>+ Add Faction</Btn>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -710,7 +721,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
           </button>
         </div>
 
-        <div onClick={() => onSelect(evt)} style={{ cursor:'pointer', paddingRight:70 }}
+        <div {...clickable(() => onSelect(evt))} style={{ cursor:'pointer', paddingRight:70 }}
           onMouseEnter={e => e.currentTarget.parentElement.style.borderLeftColor = C.gold}
           onMouseLeave={e => e.currentTarget.parentElement.style.borderLeftColor = C.bord}>
           <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
@@ -755,7 +766,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
   return (
     <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
       <div style={{ textAlign:'center', marginBottom:24 }}>
-        <Cine size={20} weight={900} mb={8}>Your Events</Cine>
+        <Cine as="h2" size={20} weight={900} mb={8}>Your Events</Cine>
         <p style={{ color:C.dim, fontSize:14, fontStyle:'italic' }}>
           Select a tournament to manage pairings and track results
         </p>
@@ -767,7 +778,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
       {renderSection('Undated', undated)}
 
       <div style={{ marginTop:16 }}>
-        <div onClick={onAdd} style={{
+        <div {...clickable(onAdd)} style={{
           border:`1px dashed ${C.bord}`, padding:'16px 18px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
           transition:'border-color 0.15s'
@@ -834,36 +845,36 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>{event ? 'Edit Event' : 'New Event'}</Tag>
-      <Cine size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
+      <Cine as="h1" size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
 
       <Tag block mb={8}>Event Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kent Teams March 2026"
-        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
           padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
 
       <div style={{ display:'flex', gap:12, marginBottom:20 }}>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>Start Date</Tag>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>End Date</Tag>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
       </div>
 
       <Tag block mb={8}>Number of Rounds</Tag>
       <input type="number" min={minRounds} max="10" value={numRounds} onChange={e => setNumRounds(Math.max(minRounds, parseInt(e.target.value) || minRounds))}
-        style={{ width:100, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', marginBottom:4 }} />
+        style={{ width:100, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', marginBottom:4 }} />
       {completedRounds > 0 && <div style={{ fontSize:12, color:C.dim, marginBottom:20 }}>{completedRounds} round{completedRounds > 1 ? 's' : ''} completed — minimum {minRounds}</div>}
 
       {!event && (events ?? []).length > 0 && (
         <>
           <Tag block mb={8} color={C.dim}>Copy Roster & Rankings From</Tag>
           <select value={copyFrom} onChange={e => setCopyFrom(e.target.value)}
-            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
             <option value="">— Start Fresh —</option>
             {(events ?? []).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
@@ -926,8 +937,8 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           const numR = event?.numRounds ?? 5;
           const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
           return nextRound
-            ? <Cine size={22} weight={900} mb={12}>Round {nextRound}</Cine>
-            : <Cine size={22} weight={900} mb={12}>Event Complete</Cine>;
+            ? <Cine as="h1" size={22} weight={900} mb={12}>Round {nextRound}</Cine>
+            : <Cine as="h1" size={22} weight={900} mb={12}>Event Complete</Cine>;
         })()}
         {completedRounds.length === 0 && (
           <p style={{ color:C.dim, fontSize:15, fontStyle:'italic' }}>
@@ -942,7 +953,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
         {sorted.map(t => {
           const facs = (t.players ?? []).map(p => p?.faction ?? '?');
           return (
-            <div key={t.id} className="tap-card" onClick={() => onSelect(t)} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s, opacity 0.1s',
+            <div key={t.id} className="tap-card" {...clickable(() => onSelect(t))} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s, opacity 0.1s',
               display:'flex', flexDirection:'column', gap:8 }}
               onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.slate}
               onMouseLeave={e => e.currentTarget.style.borderLeftColor = C.bord}>
@@ -961,7 +972,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
             </div>
           );
         })}
-        <div onClick={onAdd} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
+        <div {...clickable(onAdd)} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
           transition:'border-color 0.15s' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
@@ -985,7 +996,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               const result = ourTotal !== null ? (ourTotal >= 55 ? 'W' : ourTotal <= 45 ? 'L' : 'D') : null;
               const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
               return (
-                <div key={n} onClick={() => onRound(n)} style={{
+                <div key={n} {...clickable(() => onRound(n))} style={{
                   display:'flex', alignItems:'center', padding:'14px 16px',
                   borderLeft:`3px solid ${complete ? C.greenBord : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? C.gold : C.bord}`,
                   background:C.surf, cursor:'pointer', transition:'border-color 0.15s', gap:12, marginBottom:4
@@ -1055,11 +1066,11 @@ function Setup({ team, onSave, onDelete, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>{team ? 'Edit Opponent' : 'New Opponent'}</Tag>
-      <Cine size={24} weight={900} mb={28}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
+      <Cine as="h1" size={24} weight={900} mb={28}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
 
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Opponent team name"
-        style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white,
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
           padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
@@ -1068,7 +1079,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
         {players.map((p, i) => (
           <div key={i}>
             <select value={p.faction} onChange={e => set(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
+              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
               <option value="">— Player {i+1} Faction —</option>
               {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
             </select>
@@ -1116,7 +1127,7 @@ function Matchup({ team, onStart, onBack }) {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <Tag color={C.dim} block mb={6}>Round Opponent</Tag>
-          <Cine size={28} weight={900}>{team.name}</Cine>
+          <Cine as="h1" size={28} weight={900}>{team.name}</Cine>
         </div>
         <Btn gold onClick={onStart}>Begin Pairing →</Btn>
       </div>
@@ -1202,9 +1213,9 @@ function Pairing({ team, onBack, onComplete, onScores }) {
   const theirRemFacs = theirPool.map(i => team.players[i].faction);
   const theirDefFac  = theirDef !== null ? team.players[theirDef]?.faction : null;
 
-  const defRecs = [...ourPool].sort((a, b) =>
+  const defRecs = useMemo(() => [...ourPool].sort((a, b) =>
     avg(RAGNAROK[b].name, theirRemFacs) - avg(RAGNAROK[a].name, theirRemFacs)
-  );
+  ), [ourPool, theirRemFacs]);
 
   const maxOurAtk  = Math.min(2, ourPool.filter(i => i !== ourDef).length);
   const maxTheirAtk = Math.min(2, theirPool.filter(i => i !== theirDef).length);
@@ -1311,7 +1322,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 1 · Choose Defender</Tag>
-        <Cine size={20} weight={900} mb={6}>Select Your Defender</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:20 }}>
           Choose secretly. Ranked by average matchup score vs their remaining players.
         </p>
@@ -1323,7 +1334,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
             const exp = expanded === i;
             return (
               <div key={i} style={{ borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent', transition:'border-color 0.12s' }}>
-                <div onClick={() => setOurDef(sel ? null : i)} style={{
+                <div {...clickable(() => setOurDef(sel ? null : i))} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
                   <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
@@ -1366,7 +1377,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 1 · Reveal</Tag>
-        <Cine size={20} weight={900} mb={6}>Enter Their Defender</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:18 }}>
           Both teams have revealed defenders. Select the faction {team.name} put forward.
         </p>
@@ -1384,7 +1395,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
             const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirDef === i;
             return (
-              <div key={i} onClick={() => setTheirDef(sel ? null : i)} style={{
+              <div key={i} {...clickable(() => setTheirDef(sel ? null : i))} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
@@ -1418,7 +1429,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 2 · Attackers</Tag>
-        <Cine size={20} weight={900} mb={6}>Select Your Attackers</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Attackers</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.redBord}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.red} block mb={5}>Their Defender</Tag>
           <Cine size={13}>{team.players[theirDef].name}</Cine>
@@ -1439,7 +1450,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
             const rat = gr(r.name, theirDefFac||'');
             const sel = ourAtk.includes(i);
             return (
-              <div key={i} onClick={() => !autoSelected && toggleOurAtk(i)} style={{
+              <div key={i} {...clickable(() => !autoSelected && toggleOurAtk(i))} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
                 cursor:autoSelected ? 'default' : 'pointer',
                 borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent'
@@ -1474,7 +1485,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 2 · Reveal</Tag>
-        <Cine size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender Faces</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name} — select who they're sending</Cine>
@@ -1490,7 +1501,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
             const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirAtk.includes(i);
             return (
-              <div key={i} onClick={() => !autoSelected && toggleTheirAtk(i)} style={{
+              <div key={i} {...clickable(() => !autoSelected && toggleTheirAtk(i))} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
                 cursor:autoSelected ? 'default' : 'pointer',
                 borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
@@ -1526,7 +1537,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={8}>Step 3 · Resolve</Tag>
-        <Cine size={20} weight={900} mb={18}>Defenders Choose</Cine>
+        <Cine as="h2" size={20} weight={900} mb={18}>Defenders Choose</Cine>
 
         {/* Our defender picks */}
         <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.surf, padding:'16px 18px', marginBottom:16 }}>
@@ -1549,7 +1560,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
               const isRec = i === bestTheirAtk && theirAtk.length > 1;
               const sel = acceptedTheirAtk === i;
               return (
-                <div key={i} onClick={() => theirAtk.length > 1 && setAcceptedTheirAtk(sel ? null : i)} style={{
+                <div key={i} {...clickable(() => theirAtk.length > 1 && setAcceptedTheirAtk(sel ? null : i))} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
                   cursor:theirAtk.length > 1 ? 'pointer' : 'default',
                   borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
@@ -1588,7 +1599,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
               const isRec = i === bestOurAtk && ourAtk.length > 1;
               const sel = chosenOurAtk === i;
               return (
-                <div key={i} onClick={() => ourAtk.length > 1 && setChosenOurAtk(sel ? null : i)} style={{
+                <div key={i} {...clickable(() => ourAtk.length > 1 && setChosenOurAtk(sel ? null : i))} style={{
                   display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
                   cursor:ourAtk.length > 1 ? 'pointer' : 'default',
                   borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
@@ -1619,7 +1630,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
       return (
         <>
           <Tag center block mb={18} style={{ fontSize:12, letterSpacing:5 }}>◆ All Pairings Complete ◆</Tag>
-          <Cine size={22} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
+          <Cine as="h1" size={22} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:32 }}>
             {pairings.map((p, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf }}>
@@ -1645,7 +1656,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
     return (
       <>
         <Tag block mb={18} style={{ fontSize:12, letterSpacing:4 }}>◆ Cycle Complete</Tag>
-        <Cine size={20} weight={900} mb={18}>Pairings Confirmed</Cine>
+        <Cine as="h2" size={20} weight={900} mb={18}>Pairings Confirmed</Cine>
         {cycleRes && (
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:22 }}>
             {[cycleRes.p1, cycleRes.p2].map((p, i) => (
@@ -1702,7 +1713,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:16, flexWrap:'wrap', gap:10 }}>
         <div>
           <Tag color={C.dim} block mb={4}>Round Pairing vs</Tag>
-          <Cine size={24} weight={900}>{team.name}</Cine>
+          <Cine as="h1" size={24} weight={900}>{team.name}</Cine>
         </div>
         <div style={{ textAlign:'right' }}>
           <Tag color={C.dim} block mb={4}>Pairings</Tag>
@@ -1798,7 +1809,7 @@ function ScoringTableEditor({ table, onSave, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Event Scoring</Tag>
-      <Cine size={24} weight={900} mb={6}>VP to Game Points</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>VP to Game Points</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Edit the conversion table used to calculate game points from VP difference.
       </p>
@@ -1815,13 +1826,13 @@ function ScoringTableEditor({ table, onSave, onBack }) {
           <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'10px 12px', borderLeft:`3px solid ${C.bord}`, background:C.surf }}>
             <div style={{ flex:1, display:'flex', gap:4, alignItems:'center' }}>
               <input type="number" min="0" value={row.min} onChange={e => update(idx, 'min', e.target.value)}
-                style={{ width:50, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
               <span style={{ color:C.dim }}>-</span>
               <input type="number" min="0" value={row.max} onChange={e => update(idx, 'max', e.target.value)}
-                style={{ width:50, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
             </div>
             <input type="number" min="0" max="20" value={row.winGP} onChange={e => update(idx, 'winGP', e.target.value)}
-              style={{ width:70, background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+              style={{ width:70, background:C.input, border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
             <span style={{ width:70, fontFamily:'Source Code Pro, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
             <button onClick={() => removeRow(idx)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
@@ -1834,8 +1845,8 @@ function ScoringTableEditor({ table, onSave, onBack }) {
       <Btn ghost sm onClick={addRow} style={{ marginBottom:20 }}>+ Add Row</Btn>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -1857,7 +1868,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
     <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Edit Scores</Tag>
-      <Cine size={24} weight={900} mb={8}>Select a Round</Cine>
+      <Cine as="h1" size={24} weight={900} mb={8}>Select a Round</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Choose a completed round to review or edit its scores.
       </p>
@@ -1877,7 +1888,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
           const result = ourTotal >= 55 ? 'W' : ourTotal <= 45 ? 'L' : 'D';
           const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
           return (
-            <div key={n} onClick={() => onSelect(n)} style={{
+            <div key={n} {...clickable(() => onSelect(n))} style={{
               display:'flex', alignItems:'center', padding:'14px 16px', border:`1px solid ${C.bord}`,
               cursor:'pointer', transition:'border-color 0.15s', gap:12
             }}
@@ -1948,7 +1959,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
     <div style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={8}>Round {roundNum}</Tag>
-      <Cine size={22} weight={900} mb={8}>
+      <Cine as="h1" size={22} weight={900} mb={8}>
         {opponent ? `vs ${opponent.name}` : `Round ${roundNum}`}
       </Cine>
 
@@ -1959,7 +1970,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           </p>
           <Tag block mb={10}>Opponent</Tag>
           <select value={opponentId} onChange={e => setOpponentId(e.target.value)}
-            style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
             <option value="">— Select Opponent —</option>
             {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
           </select>
@@ -2036,13 +2047,13 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
                           <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our VP</Tag>
-                            <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} our VP`} type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their VP</Tag>
-                            <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} their VP`} type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           {sc.ourGP !== '' && sc.ourGP !== undefined && (
                             <span className="score-result" style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
@@ -2054,13 +2065,13 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
                           <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our GP</Tag>
-                            <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} our game points`} type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their GP</Tag>
-                            <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0a08', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} their game points`} type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                         </div>
                       )}
@@ -2158,7 +2169,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   {suggestions.map(s => {
                     const checked = !!selectedSuggestions[s.key];
                     return (
-                      <div key={s.key} onClick={() => toggleSuggestion(s.key)} style={{
+                      <div key={s.key} {...clickable(() => toggleSuggestion(s.key))} style={{
                         display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
                         borderLeft:`3px solid ${checked ? C.gold : C.bord}`, background:checked ? C.surf : 'transparent'
                       }}>
@@ -2386,6 +2397,7 @@ export default function App() {
     <>
       <style>{CSS}</style>
       <NavBar {...navProps} activeEvent={activeEvent} />
+      <main>
 
       {screen === 'events' && <EventList events={events} onSelect={loadEvent} onAdd={() => { setEditEventData(null); setScreen('eventSetup'); }} onDelete={handleDeleteEvent} onSettings={evt => { setEditEventData(evt); setScreen('eventEdit'); }} />}
       {screen === 'eventSetup' && <EventSetup events={events} onSave={handleSaveEvent} onBack={() => setScreen('events')} />}
@@ -2427,6 +2439,7 @@ export default function App() {
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
       {!activeEvent && (screen === 'factions') && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('events')} />}
+      </main>
     </>
   );
 }
