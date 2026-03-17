@@ -2210,6 +2210,13 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                 </span>
               </div>
               <Btn ghost full onClick={() => setEditing(true)}>Edit Scores</Btn>
+
+              {/* Navigation */}
+              <div style={{ display:'flex', flexDirection:'column', gap:10, marginTop:16 }}>
+                <Btn gold full onClick={onBack}>
+                  {roundNum < (numRounds ?? 5) ? 'Next Round →' : 'Back to Dashboard'}
+                </Btn>
+              </div>
             </>
           )}
 
@@ -2417,6 +2424,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
               </div>
             );
           })()}
+
         </>
       )}
     </div>
