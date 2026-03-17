@@ -74,7 +74,7 @@ Error generating stack: `+o.message+`
   .def-row-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 
   @media (max-width: 640px) {
-    .pair-layout { flex-direction: column-reverse; }
+    .pair-layout { flex-direction: column; }
     .pair-sidebar { width: 100%; flex-direction: row; gap: 12px; }
     .pair-sidebar > div { flex: 1; }
     .pair-sidebar .pool-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
