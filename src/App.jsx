@@ -2132,7 +2132,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           }}>←</button>
         )}
         <Cine as="h1" size={24} weight={900} mb={0} style={{ flex:1 }}>
-          {opponent ? `R${roundNum} vs ${opponent.name}` : `Round ${roundNum}`}
+          {opponent ? `Round ${roundNum} Scores` : `Round ${roundNum}`}
         </Cine>
         {roundNum < (numRounds ?? 5) && onRound && (
           <button onClick={() => onRound(roundNum + 1)} style={{
@@ -2141,6 +2141,11 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           }}>→</button>
         )}
       </div>
+      {opponent && !round.complete && (
+        <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:16 }}>
+          vs {opponent.name} — enter your scores below
+        </p>
+      )}
 
       {!round.opponentId && (
         <div style={{ marginBottom:24 }}>
@@ -2162,22 +2167,13 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
 
       {(round.opponentId || opponentId) && opponent && (
         <>
-          {/* Not started — offer to begin pairing or enter scores directly */}
-          {!round.complete && !round.scores && onMatchup && (
-            <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:20 }}>
-              <Btn gold full onClick={() => onMatchup(opponent)}>View Matchups & Begin Pairing →</Btn>
-              <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', textAlign:'center' }}>
-                Or scroll down to enter scores manually
-              </p>
-            </div>
-          )}
 
           {/* Read-only summary for completed rounds */}
-          {round.complete && !editing && (
+          {(round.complete || (!editing && scores.every(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10))))) && !editing && (
             <>
               <Tag block mb={12} color={C.green}>Round Complete</Tag>
               <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:16 }}>
-                {(round.scores ?? []).map((sc, idx) => {
+                {(scores ?? round.scores ?? []).map((sc, idx) => {
                   const pairing = pairings[idx];
                   const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
                   const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
