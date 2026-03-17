@@ -90,6 +90,9 @@ Error generating stack: `+o.message+`
   .tap-card { transition: border-color var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   .tap-card:active { opacity: 0.9; }
 
+  /* Date input icon */
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+
   /* Focus indicators — !important overrides inline outline:none */
   *:focus-visible { outline: 2px solid ${s.gold} !important; outline-offset: 2px; }
   input:focus-visible, select:focus-visible { outline: 2px solid ${s.gold} !important; outline-offset: 0; }
