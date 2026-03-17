@@ -1557,20 +1557,13 @@ function Pairing({ team, onBack, onComplete, onScores }) {
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {theirPool.map(i => {
             const p = team.players[i];
-            const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirDef === i;
             return (
               <div key={i} {...clickable(() => setTheirDef(sel ? null : i))} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
+                display:'flex', alignItems:'center', gap:12, padding:'12px 14px', cursor:'pointer',
                 borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
-                <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
-                </div>
-                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
-                  <Badge r={rat} />
-                </div>
+                <Cine size={13} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
               </div>
             );
           })}
@@ -1663,21 +1656,14 @@ function Pairing({ team, onBack, onComplete, onScores }) {
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
           {available.map(i => {
             const p = team.players[i];
-            const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirAtk.includes(i);
             return (
               <div key={i} {...clickable(() => !autoSelected && toggleTheirAtk(i))} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
+                display:'flex', alignItems:'center', gap:12, padding:'12px 14px',
                 cursor:autoSelected ? 'default' : 'pointer',
                 borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
-                <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
-                </div>
-                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
-                  <Badge r={rat} />
-                </div>
+                <Cine size={13} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
               </div>
             );
           })}
