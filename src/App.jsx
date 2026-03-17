@@ -998,22 +998,6 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
             ? <Cine as="h1" size={24} weight={900} mb={12}>Round {nextRound}</Cine>
             : <Cine as="h1" size={24} weight={900} mb={12}>Event Complete</Cine>;
         })()}
-        {(() => {
-          const numR = event?.numRounds ?? 5;
-          const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
-          if (!nextRound) return null;
-          const nextRoundData = rounds[nextRound];
-          const oppId = nextRoundData?.opponentId;
-          if (!oppId) return null;
-          const oppName = teams.find(t => t.id === oppId)?.name ?? 'Unknown';
-          return (
-            <div style={{ marginTop:8 }}>
-              <Btn gold full onClick={() => onRound(nextRound)}>
-                Round {nextRound} vs {oppName} →
-              </Btn>
-            </div>
-          );
-        })()}
         {completedRounds.length === 0 && !Object.values(rounds).some(r => r?.opponentId) && (
           <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginTop:12 }}>
             Select your round opponent to view matchups and begin pairing
@@ -1058,9 +1042,9 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               </div>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:4 }}>
                 <div style={{ display:'flex', gap:8, fontSize:12 }}>
-                  {matchupCounts.wins > 0 && <span style={{ color:C.green }}>{matchupCounts.wins}W</span>}
-                  {matchupCounts.draws > 0 && <span style={{ color:C.dim }}>{matchupCounts.draws}D</span>}
-                  {matchupCounts.losses > 0 && <span style={{ color:C.red }}>{matchupCounts.losses}L</span>}
+                  {matchupCounts.wins > 0 && <span style={{ color:C.green }}>{matchupCounts.wins}↑</span>}
+                  {matchupCounts.draws > 0 && <span style={{ color:C.dim }}>{matchupCounts.draws}→</span>}
+                  {matchupCounts.losses > 0 && <span style={{ color:C.red }}>{matchupCounts.losses}↓</span>}
                 </div>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
                   background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'10px 14px',
