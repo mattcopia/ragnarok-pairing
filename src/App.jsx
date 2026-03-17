@@ -167,7 +167,28 @@ const CSS = `
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; } ::-webkit-scrollbar-thumb { background: ${C.bord}; }
   select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23908878' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
   select option { background: ${C.surf}; }
+  /* Timing */
+  :root {
+    --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-fast: 120ms;
+    --dur-med: 200ms;
+    --dur-slow: 350ms;
+  }
+
   @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:0.8; } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
+
+  /* Base transitions on interactive elements */
+  button { transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out), border-color var(--dur-med) var(--ease-out), background var(--dur-med) var(--ease-out); }
+  button:active { transform: scale(0.97); }
+  input, select { transition: border-color var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out); }
+  input:focus, select:focus { box-shadow: 0 0 0 1px ${C.gold}20; }
+
+  /* Animated containers */
+  .page-enter { animation: fadeIn var(--dur-slow) var(--ease-out-expo) both; }
+  .card-enter { animation: slideIn var(--dur-med) var(--ease-out) both; }
 
   /* Responsive layout */
   .pair-layout { display: flex; gap: 16px; }
@@ -185,8 +206,10 @@ const CSS = `
     .stat-row { flex-direction: column !important; gap: 8px !important; }
   }
 
-  /* Touch feedback for all interactive elements */
-  button:active, [role="button"]:active { opacity: 0.8; }
+  /* Touch feedback */
+  [role="button"] { transition: border-color var(--dur-med) var(--ease-out), background var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+  [role="button"]:active { opacity: 0.85; transform: scale(0.98); }
+  .tap-card { transition: border-color var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   .tap-card:active { opacity: 0.9; }
 
   /* Focus indicators — !important overrides inline outline:none */
@@ -329,7 +352,7 @@ function Ratings({ matrixData, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Player Rankings</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>Edit Rankings</Cine>
@@ -367,7 +390,7 @@ function Ratings({ matrixData, onSave, onBack }) {
               display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
               borderLeft:`3px solid ${isChanged ? C.goldD : C.bord}`,
               background:isChanged ? C.surf : 'transparent',
-              transition:'border-color 0.12s'
+              transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)'
             }}>
               <div style={{ flex:1 }}>
                 <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white }}>{f}</span>
@@ -419,7 +442,7 @@ function Definitions({ defsData, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Scoring System</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>Rating Definitions</Cine>
@@ -576,7 +599,7 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Our Team</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>Edit Our Team</Cine>
@@ -648,7 +671,7 @@ function ManageFactions({ factionList, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Faction List</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>Manage Factions</Cine>
@@ -700,7 +723,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
     const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
     const isConfirming = confirmDel === evt.id;
     return (
-      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'16px 18px', transition:'border-color 0.15s', position:'relative' }}>
+      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'16px 18px', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', position:'relative' }}>
         {/* Icons top-right */}
         <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6 }}>
           <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
@@ -764,7 +787,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
   };
 
   return (
-    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
       <div style={{ textAlign:'center', marginBottom:24 }}>
         <Cine as="h2" size={20} weight={900} mb={8}>Your Events</Cine>
         <p style={{ color:C.dim, fontSize:14, fontStyle:'italic' }}>
@@ -781,7 +804,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
         <div {...clickable(onAdd)} style={{
           border:`1px dashed ${C.bord}`, padding:'16px 18px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
-          transition:'border-color 0.15s'
+          transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)'
         }}
           onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
           onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
@@ -842,7 +865,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>{event ? 'Edit Event' : 'New Event'}</Tag>
       <Cine as="h1" size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
@@ -930,7 +953,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
   });
 
   return (
-    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px', backgroundImage:`radial-gradient(ellipse at 50% -20%, ${C.goldGlow} 0%, transparent 50%)` }}>
+    <div className="page-enter" style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px', backgroundImage:`radial-gradient(ellipse at 50% -20%, ${C.goldGlow} 0%, transparent 50%)` }}>
       <Back onClick={onBack} />
       <div style={{ textAlign:'center', marginBottom:24 }}>
         {(() => {
@@ -953,7 +976,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
         {sorted.map(t => {
           const facs = (t.players ?? []).map(p => p?.faction ?? '?');
           return (
-            <div key={t.id} className="tap-card" {...clickable(() => onSelect(t))} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s, opacity 0.1s',
+            <div key={t.id} className="tap-card" {...clickable(() => onSelect(t))} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1), opacity 0.12s',
               display:'flex', flexDirection:'column', gap:8 }}
               onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.slate}
               onMouseLeave={e => e.currentTarget.style.borderLeftColor = C.bord}>
@@ -974,7 +997,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
         })}
         <div {...clickable(onAdd)} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
-          transition:'border-color 0.15s' }}
+          transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
           onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
           <div style={{ fontSize:22, color:C.dim }}>+</div>
@@ -999,7 +1022,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
                 <div key={n} {...clickable(() => onRound(n))} style={{
                   display:'flex', alignItems:'center', padding:'14px 16px',
                   borderLeft:`3px solid ${complete ? C.greenBord : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? C.gold : C.bord}`,
-                  background:C.surf, cursor:'pointer', transition:'border-color 0.15s', gap:12, marginBottom:4
+                  background:C.surf, cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', gap:12, marginBottom:4
                 }}
                   onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.gold}
                   onMouseLeave={e => e.currentTarget.style.borderLeftColor = complete ? C.greenBord : C.bord}>
@@ -1063,7 +1086,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
   const ok = name && players.every(p => p.faction);
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>{team ? 'Edit Opponent' : 'New Opponent'}</Tag>
       <Cine as="h1" size={24} weight={900} mb={28}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
@@ -1122,7 +1145,7 @@ function Matchup({ team, onStart, onBack }) {
   const theirFacs = (team?.players ?? []).map(p => p?.faction ?? '?');
 
   return (
-    <div style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
+    <div className="page-enter" style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
       <Back onClick={onBack} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
@@ -1333,7 +1356,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
             const sel = ourDef === i;
             const exp = expanded === i;
             return (
-              <div key={i} style={{ borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent', transition:'border-color 0.12s' }}>
+              <div key={i} style={{ borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}>
                 <div {...clickable(() => setOurDef(sel ? null : i))} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
@@ -1708,7 +1731,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
   const curStep = stepPhase[phase] ?? 0;
 
   return (
-    <div style={{ maxWidth:940, margin:'0 auto', padding:'28px 16px' }}>
+    <div className="page-enter" style={{ maxWidth:940, margin:'0 auto', padding:'28px 16px' }}>
       <Back onClick={onBack} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:16, flexWrap:'wrap', gap:10 }}>
         <div>
@@ -1724,7 +1747,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
       {/* Progress */}
       <div style={{ display:'flex', gap:3, marginBottom:14 }}>
         {Array.from({ length:5 }, (_, i) => (
-          <div key={i} style={{ flex:1, height:4, background: i < pairings.length ? C.gold : C.bord, transition:'background 0.3s' }} />
+          <div key={i} style={{ flex:1, height:4, background: i < pairings.length ? C.gold : C.bord, transition:'background 0.4s cubic-bezier(0.25,1,0.5,1)' }} />
         ))}
       </div>
 
@@ -1733,7 +1756,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
         {steps.map((s, i) => {
           const done = i < curStep, active = i === curStep;
           return (
-            <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3 }}>
+            <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3, transition:'border-color 0.3s cubic-bezier(0.25,1,0.5,1), opacity 0.3s cubic-bezier(0.25,1,0.5,1)' }}>
               <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
             </div>
           );
@@ -1806,7 +1829,7 @@ function ScoringTableEditor({ table, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Event Scoring</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>VP to Game Points</Cine>
@@ -1865,7 +1888,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
     .filter(n => rounds[n]?.complete);
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Edit Scores</Tag>
       <Cine as="h1" size={24} weight={900} mb={8}>Select a Round</Cine>
@@ -1890,7 +1913,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
           return (
             <div key={n} {...clickable(() => onSelect(n))} style={{
               display:'flex', alignItems:'center', padding:'14px 16px', border:`1px solid ${C.bord}`,
-              cursor:'pointer', transition:'border-color 0.15s', gap:12
+              cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', gap:12
             }}
               onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
               onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
@@ -1956,7 +1979,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const theirTotal = scores.reduce((s, sc) => s + (parseInt(sc.theirGP) || 0), 0);
 
   return (
-    <div style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={8}>Round {roundNum}</Tag>
       <Cine as="h1" size={22} weight={900} mb={8}>
