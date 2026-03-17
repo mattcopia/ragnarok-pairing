@@ -1006,6 +1006,14 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
           const facs = (t.players ?? []).map(p => p?.faction ?? 'D');
+          // Count best matchup per opponent faction across all our players
+          const matchupCounts = { wins:0, draws:0, losses:0 };
+          facs.forEach(f => {
+            const bestScore = Math.max(...RAGNAROK.map(r => defs[gr(r.name, f)]?.score ?? 2));
+            if (bestScore >= 3) matchupCounts.wins++;
+            else if (bestScore >= 2) matchupCounts.draws++;
+            else matchupCounts.losses++;
+          });
           const played = playedIds.has(t.id);
           const handleSelect = () => {
             if (played) setConfirmPlayed(t);
@@ -1028,7 +1036,12 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
                   <span key={i} style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{f}{i < facs.length - 1 ? ',' : ''}</span>
                 ))}
               </div>
-              <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', marginTop:4 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:4 }}>
+                <div style={{ display:'flex', gap:8, fontSize:12 }}>
+                  {matchupCounts.wins > 0 && <span style={{ color:C.green }}>{matchupCounts.wins}W</span>}
+                  {matchupCounts.draws > 0 && <span style={{ color:C.dim }}>{matchupCounts.draws}D</span>}
+                  {matchupCounts.losses > 0 && <span style={{ color:C.red }}>{matchupCounts.losses}L</span>}
+                </div>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
                   background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'10px 14px',
                   fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1, minHeight:44
@@ -1087,6 +1100,16 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
                     <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
                       {opp ? `vs ${opp.name}` : 'Not started'}
                     </span>
+                    {complete && round.pairings?.length > 0 && opp && (
+                      <div style={{ fontSize:12, color:C.dim, marginTop:4, display:'flex', gap:6, flexWrap:'wrap' }}>
+                        {(round.pairings ?? []).map((p, pi) => {
+                          const player = RAGNAROK.find(r => r.id === p.usIdx);
+                          const faction = opp.players?.[p.themIdx]?.faction;
+                          if (!player || !faction) return null;
+                          return <span key={pi}>{player.name} v {faction}{pi < round.pairings.length - 1 ? ',' : ''}</span>;
+                        })}
+                      </div>
+                    )}
                   </div>
                   {complete && (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
