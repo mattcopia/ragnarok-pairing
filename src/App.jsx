@@ -1189,6 +1189,16 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           }} style={{ marginTop:12 }}>
             {copied ? '✓ Copied!' : 'Copy Results to Clipboard'}
           </Btn>
+          <Btn ghost sm onClick={() => {
+            const url = `${window.location.origin}${window.location.pathname}#${event?.id ?? ''}`;
+            if (navigator.share) {
+              navigator.share({ title: event?.name ?? 'Event', text: `${teamName} — ${event?.name}`, url });
+            } else {
+              navigator.clipboard.writeText(url).then(() => { setCopied(true); setTimeout(() => setCopied(false), 3000); });
+            }
+          }} style={{ marginTop:8 }}>
+            Share Event Link
+          </Btn>
         </>
       )}
     </div>
@@ -2055,7 +2065,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
 
 // ─── ROUND VIEW ──────────────────────────────────────────────────────────────
 
-function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix }) {
+function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix, numRounds, onRound }) {
   const round = rounds[roundNum] ?? {};
   const [opponentId, setOpponentId] = useState(round.opponentId ?? '');
   const [scores, setScores] = useState(round.scores ?? Array.from({ length: 5 }, (_, i) => ({ table: i+1, ourVP:'', theirVP:'', ourGP:'', theirGP:'' })));
@@ -2120,9 +2130,23 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   return (
     <div className="page-enter" style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
       <Back onClick={onBack} />
-      <Cine as="h1" size={24} weight={900} mb={8}>
-        {opponent ? `Round ${roundNum} — vs ${opponent.name}` : `Round ${roundNum}`}
-      </Cine>
+      <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:8 }}>
+        {roundNum > 1 && onRound && (
+          <button onClick={() => onRound(roundNum - 1)} style={{
+            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, width:44, height:44,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:16
+          }}>←</button>
+        )}
+        <Cine as="h1" size={24} weight={900} mb={0} style={{ flex:1 }}>
+          {opponent ? `R${roundNum} vs ${opponent.name}` : `Round ${roundNum}`}
+        </Cine>
+        {roundNum < (numRounds ?? 5) && onRound && (
+          <button onClick={() => onRound(roundNum + 1)} style={{
+            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, width:44, height:44,
+            display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', fontSize:16
+          }}>→</button>
+        )}
+      </div>
 
       {!round.opponentId && (
         <div style={{ marginBottom:24 }}>
@@ -2611,7 +2635,7 @@ export default function App() {
       {activeEvent && screen === 'factions' && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'scoringTable' && <ScoringTableEditor table={activeEvent.scoringTable} onSave={saveScoringTable} onBack={()=>setScreen('home')} />}
-      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} />}
+      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} />}
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
       {!activeEvent && (screen === 'factions') && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('events')} />}
