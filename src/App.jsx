@@ -214,6 +214,9 @@ const CSS = `
   .tap-card { transition: border-color var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   .tap-card:active { opacity: 0.9; }
 
+  /* Date input icon */
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+
   /* Focus indicators — !important overrides inline outline:none */
   *:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 2px; }
   input:focus-visible, select:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 0; }
@@ -1000,11 +1003,13 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
           if (!nextRound) return null;
           const nextRoundData = rounds[nextRound];
-          const hasOpponent = nextRoundData?.opponentId;
+          const oppId = nextRoundData?.opponentId;
+          if (!oppId) return null;
+          const oppName = teams.find(t => t.id === oppId)?.name ?? 'Unknown';
           return (
             <div style={{ marginTop:8 }}>
               <Btn gold full onClick={() => onRound(nextRound)}>
-                {hasOpponent ? `Continue Round ${nextRound} →` : `Start Round ${nextRound} →`}
+                Round {nextRound} vs {oppName} →
               </Btn>
             </div>
           );
@@ -1645,8 +1650,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
         <Tag block mb={8}>Step 2 · Reveal</Tag>
         <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
-          <Tag color={C.blue} block mb={5}>Your Defender Faces</Tag>
-          <Cine size={13}>{RAGNAROK[ourDef].name} — select who they're sending</Cine>
+          <Cine size={13}>Select the opponent's chosen attackers</Cine>
         </div>
         {autoSelected && (
           <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:14 }}>
@@ -1730,9 +1734,9 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
         {/* Our attacker vs their defender */}
         <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px 18px', marginBottom:18 }}>
-          <Tag color={C.gold} block mb={10}>Your Attacker vs Their Defender</Tag>
+          <Tag color={C.gold} block mb={10}>Their Defender's Pick</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            Who attacks their defender <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.faction}</span>?
+            Their defender (<span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.faction}</span>) chose to face which of your attackers?
           </div>
           {ourAtk.length === 1 ? (
             (() => { if (chosenOurAtk === null) setTimeout(() => setChosenOurAtk(ourAtk[0]), 0); return null; })()
@@ -1750,17 +1754,12 @@ function Pairing({ team, onBack, onComplete, onScores }) {
               const sel = chosenOurAtk === i;
               return (
                 <div key={i} {...clickable(() => ourAtk.length > 1 && setChosenOurAtk(sel ? null : i))} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  display:'flex', alignItems:'center', gap:10, padding:'12px 14px',
                   cursor:ourAtk.length > 1 ? 'pointer' : 'default',
-                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
-                  position:'relative'
+                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
-                  <div style={{ flex:1 }}>
-                    <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
-                    <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
-                  </div>
-                  <Badge r={rat} />
+                  <Cine size={13} color={sel ? C.gold : C.white}>{r.name}</Cine>
+                  <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</span>
                 </div>
               );
             })}
@@ -1857,9 +1856,16 @@ function Pairing({ team, onBack, onComplete, onScores }) {
   const stepPhase = { our_def:0, their_def:1, our_atk:2, their_atk:3, resolve:4, cycle_done:4 };
   const curStep = stepPhase[phase] ?? 0;
 
+  const prevPhase = { our_def: null, their_def: 'our_def', our_atk: 'their_def', their_atk: 'our_atk', resolve: 'their_atk', cycle_done: null };
+  const handleBack = () => {
+    const prev = prevPhase[phase];
+    if (prev) setPhase(prev);
+    else onBack();
+  };
+
   return (
     <div className="page-enter" style={{ maxWidth:940, margin:'0 auto', padding:'28px 16px' }}>
-      <Back onClick={onBack} />
+      <Back onClick={handleBack} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:16, flexWrap:'wrap', gap:10 }}>
         <div>
           <Tag color={C.dim} block mb={4}>Round Pairing vs</Tag>
@@ -2062,6 +2068,7 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
 
 function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSaveMatrix, numRounds, onRound }) {
   const round = rounds[roundNum] ?? {};
+  const pairings = round.pairings ?? [];
   const [opponentId, setOpponentId] = useState(round.opponentId ?? '');
   const [scores, setScores] = useState(round.scores ?? Array.from({ length: 5 }, (_, i) => ({ table: i+1, ourVP:'', theirVP:'', ourGP:'', theirGP:'' })));
   const [inputMode, setInputMode] = useState('vp');
@@ -2070,11 +2077,15 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const [selectedSuggestions, setSelectedSuggestions] = useState({});
   const [undoData, setUndoData] = useState(null);
   const [undoTimer, setUndoTimer] = useState(null);
-  const [manualPairings, setManualPairings] = useState(
-    pairings.length > 0 ? null : Array.from({ length: 5 }, (_, i) => ({ usIdx: '', themIdx: '' }))
-  );
+  const [manualPairings, setManualPairings] = useState(() => {
+    if (pairings.length > 0) return null;
+    // Pre-populate with roster order so user just rearranges
+    return Array.from({ length: 5 }, (_, i) => ({
+      usIdx: RAGNAROK[i]?.id ?? '',
+      themIdx: i
+    }));
+  });
   const opponent = teams.find(t => t.id === opponentId);
-  const pairings = round.pairings ?? [];
 
   const updateScore = (idx, field, value) => {
     const next = [...scores];
@@ -2993,24 +3004,31 @@ export default function App() {
       {activeEvent && screen === 'home' && <Home teams={teams} rounds={roundsData} event={activeEvent} onSelect={t=>{setSelectedTeam(t);setScreen('matchup');}} onAdd={()=>{setEditTeam(null);setScreen('setup');}} onEdit={t=>{setEditTeam(t);setScreen('setup');}} onRound={n=>setScreen('round-'+n)} onBack={()=>{setActiveEvent(null);setScreenRaw('events');setHash(null,'events');}} onImport={()=>setScreen('import')} />}
       {activeEvent && screen === 'setup' && <Setup team={editTeam} onSave={handleSaveOpponent} onDelete={handleDeleteOpponent} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'matchup' && <Matchup team={selectedTeam} onStart={()=>setScreen('pairing')} onBack={()=>setScreen('home')} />}
-      {activeEvent && screen === 'pairing' && <Pairing team={selectedTeam} onBack={()=>setScreen('matchup')} onComplete={(pairings) => {
-        const roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+      {activeEvent && screen === 'pairing' && <Pairing team={selectedTeam} onBack={()=>setScreen('matchup')} onComplete={(completedPairings) => {
+        const mapped = completedPairings.map((p, i) => {
+          const themIdx = (selectedTeam?.players ?? []).findIndex(pl => pl === p.them || pl?.faction === p.them?.faction);
+          return { table: i + 1, usIdx: p.us.id, themIdx: themIdx >= 0 ? themIdx : i };
+        });
+        // Find or create round for this opponent
+        let roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+        if (!roundNum) {
+          const numR = activeEvent?.numRounds ?? 5;
+          for (let n = 1; n <= numR; n++) {
+            if (!roundsData[n]?.opponentId) { roundNum = String(n); break; }
+          }
+        }
         if (roundNum) {
-          const mapped = pairings.map((p, i) => {
-            const themIdx = (selectedTeam?.players ?? []).findIndex(pl => pl === p.them || pl?.faction === p.them?.faction);
-            return { table: i + 1, usIdx: p.us.id, themIdx: themIdx >= 0 ? themIdx : i };
-          });
-          saveRounds({ ...roundsData, [roundNum]: { ...roundsData[roundNum], pairings: mapped } });
+          const updated = { ...roundsData, [roundNum]: { ...(roundsData[roundNum] ?? {}), opponentId: selectedTeam.id, pairings: mapped } };
+          saveRounds(updated);
         }
       }} onScores={() => {
         let roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
         if (!roundNum) {
-          // Find first unassigned round and assign this opponent
           const numR = activeEvent?.numRounds ?? 5;
           for (let n = 1; n <= numR; n++) {
             if (!roundsData[n]?.opponentId) {
               roundNum = String(n);
-              const updated = { ...roundsData, [n]: { ...roundsData[n], opponentId: selectedTeam.id } };
+              const updated = { ...roundsData, [n]: { ...(roundsData[n] ?? {}), opponentId: selectedTeam.id } };
               saveRounds(updated);
               break;
             }
