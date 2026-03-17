@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>War Room Dashboard Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0a0806; color: #b0a898; font-family: 'IBM Plex Mono', monospace; min-height: 100vh; }
+
+  :root {
+    --bg: #0a0806;
+    --surf: #0e0c0a;
+    --bord: #1e1814;
+    --bord-light: #2a2218;
+    --amber: #c88838;
+    --amber-dim: #8a6028;
+    --amber-glow: rgba(200,136,56,0.06);
+    --slate: #7888a0;
+    --slate-dim: #506070;
+    --text: #b0a898;
+    --dim: #706860;
+    --white: #e8dcd0;
+    --green: #60a830;
+    --green-fg: #80d040;
+    --red: #a83030;
+    --red-fg: #e04848;
+    --blue: #5090d0;
+  }
+
+  /* Nav */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg);
+    border-bottom: 1px solid var(--bord);
+    display: flex; align-items: center;
+    padding: 0 16px; height: 52px;
+  }
+  .nav-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 700; color: var(--amber);
+    letter-spacing: 1px; flex: 1;
+  }
+  .nav-burger {
+    width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+    border: 1px solid var(--bord); background: transparent; color: var(--amber);
+    font-size: 18px; cursor: pointer;
+  }
+
+  /* Page */
+  .page { max-width: 840px; margin: 0 auto; padding: 20px 16px; }
+  .page-glow {
+    background-image: radial-gradient(ellipse at 50% -20%, var(--amber-glow) 0%, transparent 50%);
+  }
+
+  /* Back */
+  .back {
+    color: var(--dim); font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px; letter-spacing: 2px; cursor: pointer;
+    border: none; background: none; padding: 0; margin-bottom: 20px; display: block;
+  }
+
+  /* Round heading */
+  .round-heading {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px; font-weight: 800; color: var(--white);
+    margin-bottom: 4px;
+  }
+  .round-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--amber-dim); letter-spacing: 2px;
+    text-transform: uppercase; margin-bottom: 24px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex; gap: 12px; margin-bottom: 24px;
+  }
+  .stat-card {
+    flex: 1; border-left: 3px solid var(--bord);
+    padding: 12px 14px; background: var(--surf);
+  }
+  .stat-card.win { border-left-color: var(--green); }
+  .stat-card.loss { border-left-color: var(--red); }
+  .stat-card.gp { border-left-color: var(--amber); }
+  .stat-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--dim); margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px; font-weight: 700; color: var(--white);
+  }
+  .stat-value.green { color: var(--green-fg); }
+  .stat-value.amber { color: var(--amber); }
+
+  /* Player standings */
+  .player-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px; border-left: 3px solid var(--bord);
+    background: var(--surf); margin-bottom: 4px;
+  }
+  .player-row:hover { border-left-color: var(--amber); }
+  .player-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 600; color: var(--white); flex: 1;
+  }
+  .player-faction { font-size: 12px; color: var(--dim); font-style: italic; }
+  .player-gp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700; color: var(--amber);
+  }
+  .player-meta { font-size: 11px; color: var(--dim); }
+
+  /* Divider */
+  .divider {
+    display: flex; align-items: center; gap: 12px;
+    margin: 24px 0 16px;
+  }
+  .divider-line { flex: 1; height: 1px; background: var(--bord); }
+  .divider-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--amber-dim);
+  }
+
+  /* Opponent cards */
+  .opp-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+  }
+  .opp-card {
+    border-left: 3px solid var(--bord); background: var(--surf);
+    padding: 14px 16px; cursor: pointer; transition: border-color 0.15s;
+  }
+  .opp-card:hover { border-left-color: var(--slate); }
+  .opp-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px; font-weight: 700; color: var(--white); margin-bottom: 6px;
+  }
+  .opp-factions { font-size: 11px; color: var(--dim); font-style: italic; margin-bottom: 10px; }
+  .opp-footer { display: flex; justify-content: flex-end; }
+  .opp-edit {
+    font-family: 'Space Grotesk', sans-serif; font-size: 11px;
+    color: var(--dim); border: 1px solid var(--bord); background: transparent;
+    padding: 6px 12px; cursor: pointer; letter-spacing: 1px;
+  }
+  .opp-edit:hover { color: var(--amber); border-color: var(--amber-dim); }
+
+  /* Add card */
+  .add-card {
+    border: 1px dashed var(--bord); padding: 14px 16px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; flex-direction: column;
+    gap: 6px; min-height: 80px; transition: border-color 0.15s;
+  }
+  .add-card:hover { border-color: var(--amber-dim); }
+  .add-icon { font-size: 20px; color: var(--dim); }
+  .add-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim);
+  }
+
+  /* Round rows */
+  .round-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 16px; border-left: 3px solid var(--bord);
+    background: var(--surf); margin-bottom: 4px; cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .round-row:hover { border-left-color: var(--amber); }
+  .round-row.complete { border-left-color: var(--green); }
+  .round-row.active { border-left-color: var(--amber); }
+  .round-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--dim); min-width: 28px;
+  }
+  .round-opp {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; color: var(--white); flex: 1;
+  }
+  .round-opp.empty { color: var(--dim); }
+  .round-score {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px; font-weight: 700;
+  }
+  .round-score.win { color: var(--green-fg); }
+  .round-score.loss { color: var(--red-fg); }
+  .round-score.draw { color: var(--amber); }
+  .round-result {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    min-width: 20px; text-align: center;
+  }
+
+  /* Progress */
+  .progress {
+    display: flex; gap: 3px; margin-bottom: 24px;
+  }
+  .progress-seg {
+    flex: 1; height: 4px; background: var(--bord);
+  }
+  .progress-seg.done { background: var(--amber); }
+  .progress-seg.active { background: var(--amber); opacity: 0.5; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:0.8; } }
+
+  /* Badge */
+  .badge {
+    display: inline-block; padding: 4px 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 700;
+    min-width: 36px; text-align: center;
+  }
+  .badge.w-plus { background: #0d2a10; color: #60c030; border-left: 2px solid #40a020; }
+  .badge.w { background: #0a1828; color: #4088c0; border-left: 2px solid #305880; }
+  .badge.l { background: #1a0a0a; color: #d04040; border-left: 2px solid #802020; }
+  .badge.ps { background: #140a1e; color: #9878b8; border-left: 2px solid #604080; }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--amber); color: var(--bg);
+    padding: 14px 22px; border: none; cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+    width: 100%; text-align: center;
+  }
+  .btn-ghost {
+    background: transparent; color: var(--amber);
+    padding: 14px 22px; border: 1px solid var(--bord); cursor: pointer;
+    font-family: 'Space Grotesk', sans-serif; font-size: 12px;
+    font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    width: 100%; text-align: center;
+  }
+  .btn-ghost:hover { border-color: var(--amber-dim); }
+</style>
+</head>
+<body>
+
+<!-- Nav -->
+<div class="nav">
+  <div class="nav-title">Kent Teams March 2026</div>
+  <button class="nav-burger">☰</button>
+</div>
+
+<!-- Page -->
+<div class="page page-glow">
+  <button class="back">← Back</button>
+
+  <div class="round-heading">Round 3</div>
+  <div class="round-sub">// 2 wins · 0 draws · 0 losses</div>
+
+  <!-- Progress -->
+  <div class="progress">
+    <div class="progress-seg done"></div>
+    <div class="progress-seg done"></div>
+    <div class="progress-seg active"></div>
+    <div class="progress-seg"></div>
+    <div class="progress-seg"></div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card win">
+      <div class="stat-label">Record</div>
+      <div class="stat-value green">2-0-0</div>
+    </div>
+    <div class="stat-card gp">
+      <div class="stat-label">Game Points</div>
+      <div class="stat-value amber">118-82</div>
+    </div>
+  </div>
+
+  <!-- Player standings -->
+  <div style="margin-bottom:8px;">
+    <div class="player-row">
+      <div class="player-name">Ollie</div>
+      <div class="player-faction">Necrons</div>
+      <div class="player-gp">28</div>
+      <div class="player-meta">2g · avg 14.0</div>
+    </div>
+    <div class="player-row">
+      <div class="player-name">Jacob</div>
+      <div class="player-faction">Orks (GT)</div>
+      <div class="player-gp">26</div>
+      <div class="player-meta">2g · avg 13.0</div>
+    </div>
+    <div class="player-row">
+      <div class="player-name">Paul</div>
+      <div class="player-faction">Sisters</div>
+      <div class="player-gp">24</div>
+      <div class="player-meta">2g · avg 12.0</div>
+    </div>
+    <div class="player-row">
+      <div class="player-name">Alex</div>
+      <div class="player-faction">Space Wolves</div>
+      <div class="player-gp">22</div>
+      <div class="player-meta">2g · avg 11.0</div>
+    </div>
+    <div class="player-row">
+      <div class="player-name">Matt</div>
+      <div class="player-faction">Custodes</div>
+      <div class="player-gp">18</div>
+      <div class="player-meta">2g · avg 9.0</div>
+    </div>
+  </div>
+
+  <!-- Opponents -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-label">Opponents</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="opp-grid">
+    <div class="opp-card">
+      <div class="opp-name">Drooling Cretins</div>
+      <div class="opp-factions">Drukhari, Grey Knights, Custodes, Tau, Ultramarines</div>
+      <div class="opp-footer"><button class="opp-edit">Edit</button></div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-name">Egg Fried Dice</div>
+      <div class="opp-factions">Custodes, Grey Knights, Eldar, Necrons, Gladius</div>
+      <div class="opp-footer"><button class="opp-edit">Edit</button></div>
+    </div>
+    <div class="opp-card">
+      <div class="opp-name">Warhomies</div>
+      <div class="opp-factions">Chaos Knights, Imperial Knights, Thousand Sons, Tau, Necrons</div>
+      <div class="opp-footer"><button class="opp-edit">Edit</button></div>
+    </div>
+    <div class="add-card">
+      <div class="add-icon">+</div>
+      <div class="add-label">Add Opponent</div>
+    </div>
+  </div>
+
+  <!-- Rounds -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-label">Rounds</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div>
+    <div class="round-row complete">
+      <div class="round-num">01</div>
+      <div class="round-opp">vs Drooling Cretins</div>
+      <div class="round-score win">62-38</div>
+      <div class="round-result" style="color:var(--green-fg);">W</div>
+    </div>
+    <div class="round-row complete">
+      <div class="round-num">02</div>
+      <div class="round-opp">vs Egg Fried Dice</div>
+      <div class="round-score win">56-44</div>
+      <div class="round-result" style="color:var(--green-fg);">W</div>
+    </div>
+    <div class="round-row active">
+      <div class="round-num">03</div>
+      <div class="round-opp empty">Not started</div>
+    </div>
+    <div class="round-row">
+      <div class="round-num">04</div>
+      <div class="round-opp empty">Not started</div>
+    </div>
+    <div class="round-row">
+      <div class="round-num">05</div>
+      <div class="round-opp empty">Not started</div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

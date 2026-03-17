@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -19,21 +19,21 @@ const DEFAULT_FACTIONS = [
   'Daemons','Dark Angels','Death Guard','Deathwatch','Drukhari','Eldar',
   "Emperor's Children",'Gladius','Grey Knights','GSC','Imperial Guard',
   'Imperial Knights','Necrons','Orks','Other Marines','Sisters',
-  'Tau','Thousand Sons','Tyranids','Ultramarines','Votan','Wolves','World Eaters'
+  'Space Wolves','Tau','Thousand Sons','Tyranids','Ultramarines','Votan','World Eaters'
 ];
 
 let FACTIONS = [...DEFAULT_FACTIONS];
 
 const DEFAULT_MATRIX = {
-  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'?',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'PS','Grey Knights':'W++','Blood Angels':'W',Wolves:'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
-  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'PS',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'PS','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L',Wolves:'PS','Dark Angels':'L','Black Templars':'W+',Deathwatch:'?',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
-  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'PS','Ad Mech':'?','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-',Wolves:'PS','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
-  Ollie: {Daemons:'?','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'PS',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'PS',Votan:'W',Sisters:'PS',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L',Wolves:'PS','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'PS',Ultramarines:'W++','Other Marines':'W'},
-  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'W',CSM:'PS',Tau:'L',Orks:'W',Necrons:'PS',GSC:'PS',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'?','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'PS',Wolves:'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'?',Gladius:'W',Ultramarines:'?','Other Marines':'W++'},
+  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'D',CSM:'W',Tau:'W++',Orks:'D',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'D','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
+  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'D',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'D','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'D','Dark Angels':'L','Black Templars':'W+',Deathwatch:'D',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
+  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'D','Ad Mech':'D','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'D','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
+  Ollie: {Daemons:'D','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'D',Necrons:'D',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'D',Votan:'W',Sisters:'D',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'D','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'D',Ultramarines:'W++','Other Marines':'W'},
+  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'W',CSM:'D',Tau:'L',Orks:'W',Necrons:'D',GSC:'D',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'D','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'D','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'D',Gladius:'W',Ultramarines:'D','Other Marines':'W++'},
 };
 
 const FIREBASE_URL = 'https://ragnarok-18886-default-rtdb.firebaseio.com';
-const RATINGS = ['W++','W+','W','W-','PS','?','L-','L','L+'];
+const RATINGS = ['W++','W+','W','W-','D','L-','L','L+','L++'];
 
 let matrix = JSON.parse(JSON.stringify(DEFAULT_MATRIX));
 
@@ -42,19 +42,20 @@ const DEFAULT_DEFS = {
   'W+': { label:'Comfortable Win', score:3.5, desc:'31-45 VP diff — 16-18 game pts' },
   'W':  { label:'Slight Edge',     score:3.0, desc:'11-30 VP diff — 12-15 game pts' },
   'W-': { label:'Narrow Edge',     score:2.5, desc:'6-10 VP diff — 11-9 game pts' },
-  'PS': { label:'Player Skill',    score:2.0, desc:'~0 VP diff — depends on execution' },
-  '?':  { label:'Unknown',         score:2.0, desc:'No data — assume 10-10 draw' },
+  'D':  { label:'Draw',            score:2.0, desc:'~0 VP diff — 10-10 game pts' },
   'L-': { label:'Narrow Loss',     score:1.5, desc:'6-10 VP diff against — 9-11 game pts' },
-  'L':  { label:'Mild Loss',       score:1.0, desc:'11-30 VP diff against — 5-8 game pts' },
-  'L+': { label:'Heavy Loss',      score:0.0, desc:'31+ VP diff against — 0-4 game pts' },
+  'L':  { label:'Moderate Loss',   score:1.0, desc:'11-30 VP diff against — 5-8 game pts' },
+  'L+': { label:'Bad Loss',        score:0.5, desc:'31-45 VP diff against — 2-4 game pts' },
+  'L++':{ label:'Heavy Loss',      score:0.0, desc:'46+ VP diff against — 0-1 game pts' },
 };
 
 let defs = JSON.parse(JSON.stringify(DEFAULT_DEFS));
 
-const BG_COL = { 'W++':'#0a350a', 'W+':'#123c12', W:'#0e1e3a', 'W-':'#2e2210', PS:'#1e0e2e', '?':'#141414', 'L-':'#2a1010', L:'#380808', 'L+':'#400404' };
-const FG_COL = { 'W++':'#4adc4a', 'W+':'#30c830', W:'#5a90e0', 'W-':'#c09430', PS:'#b480d0', '?':'#8a8a8a', 'L-':'#d09060', L:'#e86050', 'L+':'#f03030' };
+const BG_COL = { 'W++':'#0d2a10', 'W+':'#0d2a10', W:'#081420', 'W-':'#1a1408', D:'#141210', 'L-':'#1a1008', L:'#1a0808', 'L+':'#200808', 'L++':'#280404' };
+const FG_COL = { 'W++':'#60c030', 'W+':'#50b030', W:'#5090d0', 'W-':'#b09030', D:'#908878', 'L-':'#c08040', L:'#e04848', 'L+':'#f04040', 'L++':'#ff3030' };
+const BD_COL = { 'W++':'#40a020', 'W+':'#308018', W:'#305880', 'W-':'#806020', D:'#4a4438', 'L-':'#805020', L:'#802020', 'L+':'#a01818', 'L++':'#c01010' };
 
-const gr  = (p, f)  => matrix[p]?.[f] ?? '?';
+const gr  = (p, f)  => matrix[p]?.[f] ?? 'D';
 const gs  = (p, f)  => (defs[gr(p,f)]?.score) ?? 2;
 const avg = (p, fs) => fs.length ? fs.reduce((s,f)=>s+gs(p,f),0)/fs.length : 0;
 
@@ -137,29 +138,59 @@ function gpToSuggestedRating(ourGP) {
   if (ourGP >= 16) return 'W+';
   if (ourGP >= 12) return 'W';
   if (ourGP >= 11) return 'W-';
-  if (ourGP >= 10) return 'PS';
+  if (ourGP >= 10) return 'D';
   if (ourGP >= 9)  return 'L-';
   if (ourGP >= 5)  return 'L';
-  return 'L+';
+  if (ourGP >= 2)  return 'L+';
+  return 'L++';
 }
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
 
 const C = {
-  bg:'#07080b', surf:'#0b0d13', bord:'#18202e',
-  gold:'#c8a848', goldD:'#a08838', goldB:'#e0c060',
-  text:'#b8b0a0', dim:'#9a9488', white:'#e8e0d0',
-  blue:'#5a8ad0', red:'#c05050', green:'#4aac4a',
+  bg:'#0a0806', surf:'#0e0c0a', bord:'#1e1814', bordLight:'#2a2218',
+  gold:'#c88838', goldD:'#a87830', goldB:'#e0a040',
+  goldGlow:'rgba(200,136,56,0.06)',
+  slate:'#7888a0', slateDim:'#506070',
+  text:'#b0a898', dim:'#908878', white:'#e8dcd0',
+  blue:'#5090d0', red:'#e04848', green:'#80d040',
+  redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
+  redDark:'#1a0a08', redLight:'#e08080', amberDark:'#5a4010', amberMid:'#c08040',
+  input:'#0c0a08',
+  redTint:C.redTint, goldTint:C.goldTint,
+  purple:'#9070b0',
 };
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: ${C.bg}; color: ${C.text}; font-family: 'IBM Plex Mono', monospace; min-height: 100vh; }
+  body { background: ${C.bg}; color: ${C.text}; font-family: 'Source Code Pro', monospace; min-height: 100vh; }
   input, select, button { font-family: inherit; }
   ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: ${C.bg}; } ::-webkit-scrollbar-thumb { background: ${C.bord}; }
-  select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239a9488' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
-  select option { background: #0e1018; }
+  select { -webkit-appearance: none; appearance: none; min-height: 48px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23908878' fill='none' stroke-width='1.5'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px !important; }
+  select option { background: ${C.surf}; }
+  /* Timing */
+  :root {
+    --ease-out: cubic-bezier(0.25, 1, 0.5, 1);
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --dur-fast: 120ms;
+    --dur-med: 200ms;
+    --dur-slow: 350ms;
+  }
+
+  @keyframes pulse { 0%,100% { opacity:0.3; } 50% { opacity:0.8; } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
+
+  /* Base transitions on interactive elements */
+  button { transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out), border-color var(--dur-med) var(--ease-out), background var(--dur-med) var(--ease-out); }
+  button:active { transform: scale(0.97); }
+  input, select { transition: border-color var(--dur-med) var(--ease-out), box-shadow var(--dur-med) var(--ease-out); }
+  input:focus, select:focus { box-shadow: 0 0 0 1px ${C.gold}20; }
+
+  /* Animated containers */
+  .page-enter { animation: fadeIn var(--dur-slow) var(--ease-out-expo) both; }
+  .card-enter { animation: slideIn var(--dur-med) var(--ease-out) both; }
 
   /* Responsive layout */
   .pair-layout { display: flex; gap: 16px; }
@@ -167,32 +198,54 @@ const CSS = `
   .def-row-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 
   @media (max-width: 640px) {
-    .pair-layout { flex-direction: column-reverse; }
+    .pair-layout { flex-direction: column; }
     .pair-sidebar { width: 100%; flex-direction: row; gap: 12px; }
     .pair-sidebar > div { flex: 1; }
     .pair-sidebar .pool-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
     .def-row-badges { max-width: 120px; }
-    .home-header h1 { font-size: 28px !important; }
+    .score-inputs { flex-direction: column !important; }
+    .score-result { margin-top: 4px; text-align: right; }
+    .stat-row { flex-direction: column !important; gap: 8px !important; }
+  }
+
+  /* Touch feedback */
+  [role="button"] { transition: border-color var(--dur-med) var(--ease-out), background var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out); }
+  [role="button"]:active { opacity: 0.85; transform: scale(0.98); }
+  .tap-card { transition: border-color var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
+  .tap-card:active { opacity: 0.9; }
+
+  /* Focus indicators — !important overrides inline outline:none */
+  *:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 2px; }
+  input:focus-visible, select:focus-visible { outline: 2px solid ${C.gold} !important; outline-offset: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
   }
 `;
+
+// Keyboard handler for interactive divs
+const clickable = (onClick) => ({
+  onClick, role:'button', tabIndex:0,
+  onKeyDown: e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(e); } }
+});
 
 // ─── ATOMS ────────────────────────────────────────────────────────────────────
 
 function Badge({ r }) {
   return (
-    <span style={{ display:'inline-block', padding:'4px 8px', background:BG_COL[r]??'#141414',
-      color:FG_COL[r]??'#686868', fontSize:12, fontWeight:700, fontFamily:'IBM Plex Mono, monospace',
-      minWidth:32, textAlign:'center', letterSpacing:0.5 }}>
-      {r ?? '?'}
+    <span style={{ display:'inline-block', padding:'4px 10px', background:BG_COL[r]??C.surf,
+      color:FG_COL[r]??C.dim, fontSize:12, fontWeight:700, fontFamily:'Source Code Pro, monospace',
+      minWidth:36, textAlign:'center', letterSpacing:0.5, borderLeft:`3px solid ${BD_COL[r]??C.bord}` }}>
+      {r ?? 'D'}
     </span>
   );
 }
 
-function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? '#c08030' : s >= 1 ? '#d09060' : C.red; }
+function ScoreColor(s) { return s >= 3 ? C.green : s >= 2.5 ? C.gold : s >= 2 ? C.goldD : s >= 1 ? C.amberMid : C.red; }
 
 function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   return (
-    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:3, color,
+    <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:3, color,
       textTransform:'uppercase', display:block?'block':'inline', marginBottom:mb,
       textAlign:center?'center':undefined }}>
       {children}
@@ -200,20 +253,20 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
   );
 }
 
-function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0 }) {
-  return <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb }}>{children}</div>;
+function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0, as: Tag2 = 'div' }) {
+  return <Tag2 style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, margin:0, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word' }}>{children}</Tag2>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
   const bg = gold ? C.gold : 'transparent';
-  const col = gold ? '#1a0e00' : C.gold;
+  const col = gold ? C.bg : C.gold;
   const brd = ghost ? C.bord : C.gold;
   return (
     <button onClick={!disabled ? onClick : undefined} style={{
       border:`1px solid ${brd}`, color:col, background:bg,
       padding:sm ? '12px 16px' : '14px 22px',
-      fontSize:sm ? 12 : 12, letterSpacing:2.5,
-      fontFamily:'Space Grotesk, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
+      fontSize:12, letterSpacing:2.5,
+      fontFamily:'Chakra Petch, sans-serif', textTransform:'uppercase', fontWeight:gold ? 900 : 600,
       cursor:disabled ? 'not-allowed' : 'pointer',
       opacity:disabled ? 0.3 : 1, width:full ? '100%' : undefined, ...s
     }}>
@@ -225,7 +278,7 @@ function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {}
 function Back({ onClick }) {
   return (
     <button onClick={onClick} style={{ background:'transparent', border:'none', color:C.dim,
-      fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
+      fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:2, cursor:'pointer', marginBottom:20, padding:0 }}>
       ← Back
     </button>
   );
@@ -252,7 +305,7 @@ function RatingRow({ player, factions }) {
       <div style={{ display:'flex', gap:5, flex:1, flexWrap:'wrap' }}>
         {factions.map((f, i) => <Badge key={i} r={gr(player.name, f)} />)}
       </div>
-      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
+      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:26, textAlign:'right' }}>{a.toFixed(1)}</span>
     </div>
   );
 }
@@ -260,9 +313,10 @@ function RatingRow({ player, factions }) {
 // ─── RATINGS EDITOR ──────────────────────────────────────────────────────────
 
 function Ratings({ matrixData, onSave, onBack }) {
-  const [selected, setSelected] = useState(RAGNAROK[0].name);
+  const [selected, setSelected] = useState(RAGNAROK[0]?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showKey, setShowKey] = useState(false);
   const playerRatings = matrixData[selected] ?? {};
 
   const cycle = (faction) => {
@@ -301,13 +355,34 @@ function Ratings({ matrixData, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>Matchup Matrix</Tag>
-      <Cine size={24} weight={900} mb={6}>Edit Ratings</Cine>
+      <Tag block mb={10}>Player Rankings</Tag>
+      <Cine as="h1" size={24} weight={900} mb={6}>Edit Rankings</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
-        Tap a rating to cycle through: G → A+ → A → A- → PS → N → R
+        Tap a rating to cycle through rankings. Use the key below for reference.
       </p>
+      <Btn ghost sm onClick={() => setShowKey(!showKey)} style={{ marginBottom:16 }}>{showKey ? 'Hide Ranking Key' : 'See Ranking Key'}</Btn>
+      <div style={{ display:'grid', gridTemplateRows:showKey ? '1fr' : '0fr', transition:'grid-template-rows 0.3s cubic-bezier(0.25,1,0.5,1)', marginBottom:showKey ? 20 : 0 }}>
+        <div style={{ overflow:'hidden' }}>
+          <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'14px 16px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {RATINGS.map(r => (
+                <div key={r} style={{ display:'flex', alignItems:'center', gap:12, padding:'6px 0', borderBottom:`1px solid ${C.bord}` }}>
+                  <Badge r={r} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white }}>{defs[r]?.label ?? r}</div>
+                    <div style={{ fontSize:12, color:C.dim }}>Score: {defs[r]?.score ?? '—'}</div>
+                  </div>
+                  <div style={{ fontSize:12, color:C.dim, textAlign:'right', lineHeight:1.5 }}>
+                    {(defs[r]?.desc ?? '').split('—').map((part, i) => <div key={i}>{part.trim()}</div>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Player tabs */}
       <div style={{ display:'flex', gap:6, marginBottom:24, flexWrap:'wrap' }}>
@@ -316,13 +391,13 @@ function Ratings({ matrixData, onSave, onBack }) {
           const mod = changed(r.name);
           return (
             <button key={r.id} onClick={() => setSelected(r.name)} style={{
-              border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.1)' : 'transparent',
+              borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
               color:sel ? C.gold : C.text, padding:'8px 14px', cursor:'pointer',
-              fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
+              fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:sel ? 700 : 400, letterSpacing:1,
               position:'relative'
             }}>
               {r.name}
-              {mod && <span style={{ position:'absolute', top:3, right:3, width:6, height:6, borderRadius:3, background:C.gold }} />}
+              {mod && sel && <span style={{ position:'absolute', top:3, right:3, width:6, height:6, borderRadius:3, background:C.gold }} />}
             </button>
           );
         })}
@@ -331,18 +406,18 @@ function Ratings({ matrixData, onSave, onBack }) {
       {/* Faction list */}
       <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:24 }}>
         {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => {
-          const r = playerRatings[f] ?? '?';
-          const def = DEFAULT_MATRIX[selected]?.[f] ?? '?';
+          const r = playerRatings[f] ?? 'D';
+          const def = DEFAULT_MATRIX[selected]?.[f] ?? 'D';
           const isChanged = r !== def;
           return (
-            <div key={f} onClick={() => cycle(f)} style={{
-              display:'flex', alignItems:'center', gap:12, padding:'9px 14px', cursor:'pointer',
-              border:`1px solid ${isChanged ? C.goldD : C.bord}`,
-              background:isChanged ? 'rgba(200,168,72,0.04)' : 'transparent',
-              transition:'border-color 0.12s'
+            <div key={f} {...clickable(() => cycle(f))} style={{
+              display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
+              borderLeft:`3px solid ${isChanged ? C.goldD : C.bord}`,
+              background:isChanged ? C.surf : 'transparent',
+              transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)'
             }}>
               <div style={{ flex:1 }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white }}>{f}</span>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white }}>{f}</span>
                 {isChanged && <span style={{ fontSize:12, color:C.goldD, marginLeft:8 }}>was {def}</span>}
               </div>
               <Badge r={r} />
@@ -354,8 +429,8 @@ function Ratings({ matrixData, onSave, onBack }) {
 
       {/* Status + actions */}
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
@@ -391,10 +466,10 @@ function Definitions({ defsData, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Scoring System</Tag>
-      <Cine size={24} weight={900} mb={6}>Rating Definitions</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Rating Definitions</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Edit labels, scores, and descriptions for each rating tier.
       </p>
@@ -405,32 +480,32 @@ function Definitions({ defsData, onSave, onBack }) {
           const def = DEFAULT_DEFS[key] ?? {};
           const changed = d.label !== def.label || d.score !== def.score || d.desc !== def.desc;
           return (
-            <div key={key} style={{ border:`1px solid ${changed ? C.goldD : C.bord}`, padding:'14px 16px',
-              background:changed ? 'rgba(200,168,72,0.04)' : 'transparent' }}>
+            <div key={key} style={{ borderLeft:`3px solid ${changed ? C.goldD : C.bord}`, padding:'14px 16px',
+              background:changed ? C.surf : 'transparent' }}>
               <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
                 <Badge r={key} />
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:FG_COL[key] ?? C.text }}>{key}</span>
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
                 <div>
                   <Tag block mb={4} color={C.dim}>Label</Tag>
                   <input value={d.label ?? ''} onChange={e => update(key, 'label', e.target.value)}
-                    style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                      padding:'8px 10px', fontSize:13, fontFamily:'Space Grotesk, sans-serif', outline:'none' }} />
+                    style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+                      padding:'8px 10px', fontSize:13, fontFamily:'Chakra Petch, sans-serif', outline:'none' }} />
                 </div>
                 <div style={{ display:'flex', gap:10 }}>
                   <div style={{ flex:1 }}>
                     <Tag block mb={4} color={C.dim}>Score</Tag>
                     <input type="number" step="0.5" min="0" max="5" value={d.score ?? 0}
                       onChange={e => update(key, 'score', parseFloat(e.target.value) || 0)}
-                      style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                        padding:'8px 10px', fontSize:13, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                      style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+                        padding:'8px 10px', fontSize:13, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                   </div>
                 </div>
                 <div>
                   <Tag block mb={4} color={C.dim}>Description</Tag>
                   <input value={d.desc ?? ''} onChange={e => update(key, 'desc', e.target.value)}
-                    style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
+                    style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.text,
                       padding:'12px 12px', fontSize:14, outline:'none' }} />
                 </div>
               </div>
@@ -440,13 +515,13 @@ function Definitions({ defsData, onSave, onBack }) {
       </div>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16, flexWrap:'wrap' }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Definitions</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Definitions'}</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaultss</Btn>
       </div>
     </div>
   );
@@ -482,15 +557,15 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
       <nav style={{
         position:'sticky', top:0, zIndex:100, background:C.bg,
         borderBottom:`1px solid ${C.bord}`, display:'flex', alignItems:'center',
-        padding:'0 16px', height:48
+        padding:'0 16px', height:52
       }}>
-        <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1 }}>
+        <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:14, fontWeight:700, color:C.gold, letterSpacing:2, flex:1, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {activeEvent ? activeEvent.name : 'Tactical Teams Console'}
         </div>
         <button onClick={() => setOpen(true)} style={{
           background:'transparent', border:`1px solid ${C.bord}`, color:C.gold,
           width:44, height:44, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-          fontSize:16, fontFamily:'IBM Plex Mono, monospace'
+          fontSize:16, fontFamily:'Source Code Pro, monospace'
         }}>
           ☰
         </button>
@@ -500,7 +575,7 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
           display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
           <button onClick={() => setOpen(false)} style={{
             position:'absolute', top:6, right:16, background:'transparent', border:`1px solid ${C.bord}`,
-            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'IBM Plex Mono, monospace',
+            color:C.gold, width:44, height:44, cursor:'pointer', fontSize:16, fontFamily:'Source Code Pro, monospace',
             display:'flex', alignItems:'center', justifyContent:'center'
           }}>
             ✕
@@ -508,11 +583,11 @@ function NavBar({ activeEvent, onRatings, onDefs, onOurTeam, onFactions, onEvent
           <div style={{ display:'flex', flexDirection:'column', gap:0, alignItems:'center', width:'100%', maxWidth:320 }}>
             {sections.map((section, si) => (
               <div key={si} style={{ width:'100%', marginBottom:si < sections.length - 1 ? 16 : 0 }}>
-                {section.label && <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, letterSpacing:3, textTransform:'uppercase', textAlign:'center', marginBottom:8 }}>{section.label}</div>}
+                {section.label && <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.goldD, letterSpacing:3, textTransform:'uppercase', textAlign:'center', marginBottom:8 }}>{section.label}</div>}
                 {section.items.filter(i => i.action).map((item, i) => (
                   <button key={i} onClick={() => { setOpen(false); item.action(); }} style={{
                     background:'transparent', border:'none', color:C.text, padding:'14px 24px', cursor:'pointer',
-                    fontFamily:'Space Grotesk, sans-serif', fontSize:16, textAlign:'center', width:'100%', display:'block'
+                    fontFamily:'Chakra Petch, sans-serif', fontSize:16, textAlign:'center', width:'100%', display:'block'
                   }}
                     onMouseEnter={e => e.currentTarget.style.color = C.gold}
                     onMouseLeave={e => e.currentTarget.style.color = C.text}>
@@ -548,46 +623,49 @@ function EditOurTeam({ roster, currentTeamName, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Our Team</Tag>
-      <Cine size={24} weight={900} mb={6}>Edit Our Team</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Edit Our Team</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Update team name, player names and factions.
       </p>
 
       <Tag block mb={8}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)}
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:24 }}>
         {players.map((p, i) => (
-          <div key={i} style={{ border:`1px solid ${C.bord}`, padding:'14px 16px' }}>
+          <div key={i} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'14px 16px' }}>
             <Tag block mb={6} color={C.dim}>Player {i + 1}</Tag>
             <div style={{ display:'flex', gap:10, marginBottom:8 }}>
               <div style={{ flex:1 }}>
                 <Tag block mb={4} color={C.dim}>Name</Tag>
                 <input value={p.name} onChange={e => update(i, 'name', e.target.value)}
-                  style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-                    padding:'8px 10px', fontSize:14, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, outline:'none' }} />
+                  style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+                    padding:'8px 10px', fontSize:14, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, outline:'none' }} />
               </div>
             </div>
             <Tag block mb={4} color={C.dim}>Faction</Tag>
-            <input value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.text,
-                padding:'12px 12px', fontSize:14, outline:'none' }} />
+            <select value={p.faction} onChange={e => update(i, 'faction', e.target.value)}
+              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim,
+                padding:'12px 12px', fontSize:14, outline:'none' }}>
+              <option value="">— Select Faction —</option>
+              {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
+            </select>
           </div>
         ))}
       </div>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
-      <Btn gold full onClick={handleSave}>Save Team</Btn>
+      <Btn gold full disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Team'}</Btn>
     </div>
   );
 }
@@ -617,10 +695,10 @@ function ManageFactions({ factionList, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Faction List</Tag>
-      <Cine size={24} weight={900} mb={6}>Manage Factions</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>Manage Factions</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Add, remove, or rename factions. These appear in opponent setup and the ratings editor.
       </p>
@@ -629,11 +707,11 @@ function ManageFactions({ factionList, onSave, onBack }) {
         {local.map((f, i) => (
           <div key={i} style={{ display:'flex', gap:8, alignItems:'center' }}>
             <input value={f} onChange={e => update(i, e.target.value)}
-              style={{ flex:1, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
+              style={{ flex:1, background:C.input, border:`1px solid ${C.bord}`, color:C.white,
                 padding:'12px 12px', fontSize:14, outline:'none' }} />
             <button onClick={() => remove(i)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
-              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
+              width:44, height:44, cursor:'pointer', fontSize:14, fontFamily:'Source Code Pro, monospace'
             }}>✕</button>
           </div>
         ))}
@@ -642,13 +720,13 @@ function ManageFactions({ factionList, onSave, onBack }) {
       <Btn ghost sm onClick={add} style={{ marginBottom:20 }}>+ Add Faction</Btn>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Factions</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Factions'}</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaultss</Btn>
       </div>
     </div>
   );
@@ -669,7 +747,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
     const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
     const isConfirming = confirmDel === evt.id;
     return (
-      <div key={evt.id} style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', transition:'border-color 0.15s', position:'relative' }}>
+      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'16px 18px', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', position:'relative' }}>
         {/* Icons top-right */}
         <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6 }}>
           <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
@@ -684,32 +762,32 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
             background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
             width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
           }}
-            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = '#3a1818'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = C.redBord; }}
             onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
             🗑
           </button>
         </div>
 
-        <div onClick={() => onSelect(evt)} style={{ cursor:'pointer', paddingRight:70 }}
-          onMouseEnter={e => e.currentTarget.parentElement.style.borderColor = C.goldD}
-          onMouseLeave={e => e.currentTarget.parentElement.style.borderColor = C.bord}>
-          <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
+        <div {...clickable(() => onSelect(evt))} style={{ cursor:'pointer', paddingRight:70 }}
+          onMouseEnter={e => e.currentTarget.parentElement.style.borderLeftColor = C.gold}
+          onMouseLeave={e => e.currentTarget.parentElement.style.borderLeftColor = C.bord}>
+          <Cine size={14} weight={700} mb={4}>{evt.name}</Cine>
           <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
             {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
           </div>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
             <Tag color={C.dim}>{(evt.opponents ?? []).length + 1} teams · {((evt.opponents ?? []).length + 1) * 5} players</Tag>
-            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
+            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
               {roundsDone}/{evt.numRounds ?? 5}
             </span>
           </div>
         </div>
 
         {isConfirming && (
-          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:'rgba(192,80,80,0.06)' }}>
+          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:C.redTint }}>
             <p style={{ fontSize:13, color:C.dim, marginBottom:12 }}>Delete {evt.name}? This cannot be undone.</p>
             <div style={{ display:'flex', gap:10 }}>
-              <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+              <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                 Yes, Delete
               </Btn>
               <Btn ghost full onClick={() => setConfirmDel(null)}>Cancel</Btn>
@@ -725,7 +803,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
     return (
       <>
         <Divider label={label} />
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(250px, 1fr))', gap:12, marginTop:12, marginBottom:16 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(250px, 100%), 1fr))', gap:12, marginTop:12, marginBottom:16 }}>
           {list.sort((a, b) => (a.dates?.start ?? '').localeCompare(b.dates?.start ?? '')).map(renderCard)}
         </div>
       </>
@@ -733,9 +811,9 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
   };
 
   return (
-    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
       <div style={{ textAlign:'center', marginBottom:24 }}>
-        <Cine size={20} weight={900} mb={8}>Your Events</Cine>
+        <Cine as="h2" size={20} weight={900} mb={8}>Your Events</Cine>
         <p style={{ color:C.dim, fontSize:14, fontStyle:'italic' }}>
           Select a tournament to manage pairings and track results
         </p>
@@ -747,10 +825,10 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
       {renderSection('Undated', undated)}
 
       <div style={{ marginTop:16 }}>
-        <div onClick={onAdd} style={{
+        <div {...clickable(onAdd)} style={{
           border:`1px dashed ${C.bord}`, padding:'16px 18px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
-          transition:'border-color 0.15s'
+          transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)'
         }}
           onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
           onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
@@ -811,39 +889,38 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>{event ? 'Edit Event' : 'New Event'}</Tag>
-      <Cine size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
+      <Cine as="h1" size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
 
       <Tag block mb={8}>Event Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Kent Teams March 2026"
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600, marginBottom:20, outline:'none' }} />
 
       <div style={{ display:'flex', gap:12, marginBottom:20 }}>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>Start Date</Tag>
           <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
         <div style={{ flex:1 }}>
           <Tag block mb={8}>End Date</Tag>
           <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, outline:'none' }} />
         </div>
       </div>
 
       <Tag block mb={8}>Number of Rounds</Tag>
       <input type="number" min={minRounds} max="10" value={numRounds} onChange={e => setNumRounds(Math.max(minRounds, parseInt(e.target.value) || minRounds))}
-        style={{ width:100, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', marginBottom:4 }} />
+        style={{ width:100, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', marginBottom:4 }} />
       {completedRounds > 0 && <div style={{ fontSize:12, color:C.dim, marginBottom:20 }}>{completedRounds} round{completedRounds > 1 ? 's' : ''} completed — minimum {minRounds}</div>}
 
       {!event && (events ?? []).length > 0 && (
         <>
           <Tag block mb={8} color={C.dim}>Copy Roster & Rankings From</Tag>
           <select value={copyFrom} onChange={e => setCopyFrom(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:copyFrom ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:20 }}>
             <option value="">— Start Fresh —</option>
             {(events ?? []).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
           </select>
@@ -857,12 +934,12 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
       {event && onDelete && (
         <div style={{ marginTop:24, borderTop:`1px solid ${C.bord}`, paddingTop:20 }}>
           {!confirmDel ? (
-            <Btn ghost sm full onClick={() => setConfirmDel(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
+            <Btn ghost sm full onClick={() => setConfirmDel(true)} style={{ color:C.red, borderColor:C.redBord }}>
               Delete Event
             </Btn>
           ) : (
             <div style={{ display:'flex', gap:10 }}>
-              <Btn sm full onClick={() => onDelete(event.id)} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+              <Btn sm full onClick={() => onDelete(event.id)} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                 Confirm Delete
               </Btn>
               <Btn ghost sm full onClick={() => setConfirmDel(false)}>Cancel</Btn>
@@ -877,7 +954,10 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 
 function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
-  const sorted = [...teams].sort((a, b) => a.name.localeCompare(b.name));
+  const [confirmPlayed, setConfirmPlayed] = useState(null);
+  const playedIds = new Set(Object.values(rounds).filter(r => r?.opponentId).map(r => r.opponentId));
+  const allTeams = [...(teams ?? [])].filter(t => t).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+  const sorted = [...allTeams.filter(t => !playedIds.has(t.id)), ...allTeams.filter(t => playedIds.has(t.id))];
 
   // Standings
   const completedRounds = Object.values(rounds).filter(r => r && r.complete);
@@ -899,40 +979,16 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
   });
 
   return (
-    <div style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:840, margin:'0 auto', padding:'24px 20px', backgroundImage:`radial-gradient(ellipse at 50% -20%, ${C.goldGlow} 0%, transparent 50%)` }}>
       <Back onClick={onBack} />
       <div style={{ textAlign:'center', marginBottom:24 }}>
         {(() => {
           const numR = event?.numRounds ?? 5;
           const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
           return nextRound
-            ? <Cine size={22} weight={900} mb={12}>Round {nextRound}</Cine>
-            : <Cine size={22} weight={900} mb={12}>Event Complete</Cine>;
+            ? <Cine as="h1" size={24} weight={900} mb={12}>Round {nextRound}</Cine>
+            : <Cine as="h1" size={24} weight={900} mb={12}>Event Complete</Cine>;
         })()}
-        {completedRounds.length > 0 && (
-          <>
-            <div style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16 }}>
-              <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
-                <Tag color={C.dim}>W-D-L</Tag>
-              </div>
-              <div style={{ textAlign:'center' }}>
-                <div style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
-                <Tag color={C.dim}>Game Points</Tag>
-              </div>
-            </div>
-            <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20, maxWidth:500, margin:'0 auto 20px' }}>
-              {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
-                <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}`, gap:10 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
-                  <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
-                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
-                  <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
         {completedRounds.length === 0 && (
           <p style={{ color:C.dim, fontSize:15, fontStyle:'italic' }}>
             Select your round opponent to view matchups and begin pairing
@@ -942,15 +998,26 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
 
       <Divider label="Opponents" />
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(210px, 1fr))', gap:12, marginTop:12 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
-          const facs = t.players.map(p => p.faction);
+          const facs = (t.players ?? []).map(p => p?.faction ?? 'D');
+          const played = playedIds.has(t.id);
+          const handleSelect = () => {
+            if (played) setConfirmPlayed(t);
+            else onSelect(t);
+          };
           return (
-            <div key={t.id} onClick={() => onSelect(t)} style={{ border:`1px solid ${C.bord}`, padding:'14px 16px', cursor:'pointer', transition:'border-color 0.15s',
-              display:'flex', flexDirection:'column', gap:8 }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
-              onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-              <Cine size={14} weight={700}>{t.name}</Cine>
+            <div key={t.id} className="tap-card" {...clickable(handleSelect)} style={{
+              borderLeft:`3px solid ${played ? C.greenBord : C.bord}`, background:C.surf, padding:'14px 16px', cursor:'pointer',
+              transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1), opacity 0.12s',
+              display:'flex', flexDirection:'column', gap:8, opacity:played ? 0.6 : 1
+            }}
+              onMouseEnter={e => e.currentTarget.style.borderLeftColor = played ? C.greenBord : C.slate}
+              onMouseLeave={e => e.currentTarget.style.borderLeftColor = played ? C.greenBord : C.bord}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <Cine size={14} weight={700}>{t.name}</Cine>
+                {played && <span style={{ color:C.green, fontSize:16 }}>✓</span>}
+              </div>
               <div style={{ display:'flex', gap:4, flexWrap:'wrap' }}>
                 {facs.map((f, i) => (
                   <span key={i} style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{f}{i < facs.length - 1 ? ',' : ''}</span>
@@ -958,22 +1025,36 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               </div>
               <div style={{ display:'flex', justifyContent:'flex-end', alignItems:'center', marginTop:4 }}>
                 <button onClick={e => { e.stopPropagation(); onEdit(t); }} style={{
-                  background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'8px 12px',
-                  fontSize:12, fontFamily:'Space Grotesk, sans-serif', cursor:'pointer', letterSpacing:1
+                  background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, padding:'10px 14px',
+                  fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1, minHeight:44
                 }}>Edit</button>
               </div>
             </div>
           );
         })}
-        <div onClick={onAdd} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
+        <div {...clickable(onAdd)} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
-          transition:'border-color 0.15s' }}
+          transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}
           onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
           onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
           <div style={{ fontSize:22, color:C.dim }}>+</div>
           <Tag color={C.dim}>Add Opponent</Tag>
         </div>
       </div>
+
+      {/* Already played warning */}
+      {confirmPlayed && (
+        <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px', marginTop:12 }}>
+          <Cine size={14} weight={700} mb={8} color={C.gold}>Already Played</Cine>
+          <p style={{ fontSize:13, color:C.dim, marginBottom:14 }}>
+            You've already faced {confirmPlayed.name} in a previous round. Are you sure you want to view this matchup again?
+          </p>
+          <div style={{ display:'flex', gap:10 }}>
+            <Btn gold full onClick={() => { onSelect(confirmPlayed); setConfirmPlayed(null); }}>Yes, Continue</Btn>
+            <Btn ghost full onClick={() => setConfirmPlayed(null)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
 
       {/* Rounds */}
       {event && (
@@ -989,27 +1070,55 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               const result = ourTotal !== null ? (ourTotal >= 55 ? 'W' : ourTotal <= 45 ? 'L' : 'D') : null;
               const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
               return (
-                <div key={n} onClick={() => onRound(n)} style={{
-                  display:'flex', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.bord}`,
-                  cursor:'pointer', transition:'border-color 0.15s', gap:12
+                <div key={n} {...clickable(() => onRound(n))} style={{
+                  display:'flex', alignItems:'center', padding:'14px 16px',
+                  borderLeft:`3px solid ${complete ? C.greenBord : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? C.gold : C.bord}`,
+                  background:C.surf, cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', gap:12, marginBottom:4
                 }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:60 }}>Round {n}</span>
+                  onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.gold}
+                  onMouseLeave={e => e.currentTarget.style.borderLeftColor = complete ? C.greenBord : C.bord}>
+                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, color:C.dim, minWidth:28 }}>{String(n).padStart(2,'0')}</span>
                   <div style={{ flex:1 }}>
-                    <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
+                    <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:opp ? C.white : C.dim }}>
                       {opp ? `vs ${opp.name}` : 'Not started'}
                     </span>
                   </div>
                   {complete && (
                     <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
-                      <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+                      <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
                     </div>
                   )}
                 </div>
               );
             })}
+          </div>
+        </>
+      )}
+
+      {/* Standings */}
+      {completedRounds.length > 0 && (
+        <>
+          <Divider label="Standings" />
+          <div className="stat-row" style={{ display:'flex', justifyContent:'center', gap:24, marginBottom:16, marginTop:12 }}>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:C.gold }}>{wins}-{draws}-{losses}</div>
+              <Tag color={C.dim}>W-D-L</Tag>
+            </div>
+            <div style={{ textAlign:'center' }}>
+              <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:20, fontWeight:700, color:totalOurGP > totalTheirGP ? C.green : totalOurGP < totalTheirGP ? C.red : C.gold }}>{totalOurGP}-{totalTheirGP}</div>
+              <Tag color={C.dim}>Game Points</Tag>
+            </div>
+          </div>
+          <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20 }}>
+            {[...playerStats].sort((a, b) => b.gp - a.gp).map(p => (
+              <div key={p.id} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.bord}`, background:C.surf, gap:10, marginBottom:4 }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, flex:1 }}>{p.name}</span>
+                <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.faction}</span>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, fontWeight:700, color:C.gold, minWidth:30, textAlign:'right' }}>{p.gp}</span>
+                <span style={{ fontSize:12, color:C.dim }}>({p.games}g, avg {p.avg})</span>
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -1028,15 +1137,14 @@ function Setup({ team, onSave, onDelete, onBack }) {
   const ok = name && players.every(p => p.faction);
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>{team ? 'Edit Opponent' : 'New Opponent'}</Tag>
-      <Cine size={24} weight={900} mb={28}>{team ? 'Edit Team' : 'Add Opponent Team'}</Cine>
+      <Cine as="h1" size={24} weight={900} mb={32}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
 
-      <Tag block mb={8}>Team Name</Tag>
-      <input value={name} onChange={e => setName(e.target.value)} placeholder="e.g. Sons of Sanguinius…"
-        style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white,
-          padding:'10px 14px', fontSize:16, fontFamily:'Space Grotesk, sans-serif', fontWeight:600,
+      <Tag block mb={10}>Team Name</Tag>
+      <input value={name} onChange={e => setName(e.target.value)} placeholder="Opponent team name"
+        style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
+          padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
           marginBottom:24, outline:'none' }} />
 
       <Tag block mb={12}>Factions (5 players)</Tag>
@@ -1044,7 +1152,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
         {players.map((p, i) => (
           <div key={i}>
             <select value={p.faction} onChange={e => set(i, 'faction', e.target.value)}
-              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
+              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:p.faction ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none' }}>
               <option value="">— Player {i+1} Faction —</option>
               {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => <option key={f} value={f}>{f}</option>)}
             </select>
@@ -1052,23 +1160,23 @@ function Setup({ team, onSave, onDelete, onBack }) {
         ))}
       </div>
       <Btn gold full disabled={!ok} onClick={() => onSave({ ...team, id:team?.id ?? Date.now().toString(), name, players })}>
-        Save Team
+        {team ? 'Save Changes' : 'Add Opponent'}
       </Btn>
 
       {team && (
         <div style={{ marginTop:24, borderTop:`1px solid ${C.bord}`, paddingTop:20 }}>
           {!confirmDelete ? (
-            <Btn ghost full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:'#3a1818' }}>
+            <Btn ghost full onClick={() => setConfirmDelete(true)} style={{ color:C.red, borderColor:C.redBord }}>
               Remove Team
             </Btn>
           ) : (
-            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:'rgba(192,80,80,0.06)' }}>
+            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:C.redTint }}>
               <Cine size={14} weight={700} color={C.red} mb={8}>Remove {team.name}?</Cine>
               <p style={{ fontSize:13, color:C.dim, marginBottom:16 }}>
                 This will permanently remove this opponent team. Any round data linked to them will remain but won't show the team name.
               </p>
               <div style={{ display:'flex', gap:10 }}>
-                <Btn full onClick={() => { onDelete(team.id); }} style={{ background:'#3a1010', color:C.red, borderColor:C.red }}>
+                <Btn full onClick={() => { onDelete(team.id); }} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
                   Yes, Remove
                 </Btn>
                 <Btn ghost full onClick={() => setConfirmDelete(false)}>Cancel</Btn>
@@ -1084,22 +1192,22 @@ function Setup({ team, onSave, onDelete, onBack }) {
 // ─── MATCHUP VIEW ─────────────────────────────────────────────────────────────
 
 function Matchup({ team, onStart, onBack }) {
-  const theirFacs = team.players.map(p => p.faction);
+  const theirFacs = (team?.players ?? []).map(p => p?.faction ?? 'D');
 
   return (
-    <div style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
+    <div className="page-enter" style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
       <Back onClick={onBack} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <Tag color={C.dim} block mb={6}>Round Opponent</Tag>
-          <Cine size={28} weight={900}>{team.name}</Cine>
+          <Cine as="h1" size={24} weight={900}>{team.name}</Cine>
         </div>
         <Btn gold onClick={onStart}>Begin Pairing →</Btn>
       </div>
 
       <div style={{ position:'relative', marginBottom:24 }}>
         <div style={{ overflowX:'auto' }}>
-          <table style={{ borderCollapse:'collapse', width:'100%', minWidth:600 }}>
+          <table style={{ borderCollapse:'collapse', width:'100%', minWidth:480 }}>
             <thead>
               <tr>
                 <th style={{ padding:'8px 14px', borderBottom:`1px solid ${C.bord}` }} />
@@ -1107,8 +1215,8 @@ function Matchup({ team, onStart, onBack }) {
                   <Tag color={C.dim}>Avg</Tag>
                 </th>
                 {team.players.map((p, i) => (
-                  <th key={i} style={{ padding:'8px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:90 }}>
-                    <Cine size={12} weight={700}>{p.faction}</Cine>
+                  <th key={i} style={{ padding:'8px 10px', textAlign:'center', borderBottom:`1px solid ${C.bord}`, minWidth:70 }}>
+                    <Cine size={13} weight={700}>{p.faction}</Cine>
                   </th>
                 ))}
               </tr>
@@ -1123,7 +1231,7 @@ function Matchup({ team, onStart, onBack }) {
                       <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
                     </td>
                     <td style={{ padding:'10px 12px', textAlign:'center', borderBottom:`1px solid ${C.bord}` }}>
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
                     </td>
                     {team.players.map((p, i) => {
                       const rat = gr(r.name, p.faction);
@@ -1160,7 +1268,7 @@ function Matchup({ team, onStart, onBack }) {
 
 const PHASES = ['our_def','their_def','our_atk','their_atk','resolve','cycle_done'];
 
-function Pairing({ team, onBack, onComplete }) {
+function Pairing({ team, onBack, onComplete, onScores }) {
   const [ourPool,  setOurPool]  = useState([0,1,2,3,4]);
   const [theirPool, setTheirPool] = useState([0,1,2,3,4]);
   const [pairings, setPairings] = useState([]);
@@ -1178,9 +1286,9 @@ function Pairing({ team, onBack, onComplete }) {
   const theirRemFacs = theirPool.map(i => team.players[i].faction);
   const theirDefFac  = theirDef !== null ? team.players[theirDef]?.faction : null;
 
-  const defRecs = [...ourPool].sort((a, b) =>
+  const defRecs = useMemo(() => [...ourPool].sort((a, b) =>
     avg(RAGNAROK[b].name, theirRemFacs) - avg(RAGNAROK[a].name, theirRemFacs)
-  );
+  ), [ourPool, theirRemFacs]);
 
   const maxOurAtk  = Math.min(2, ourPool.filter(i => i !== ourDef).length);
   const maxTheirAtk = Math.min(2, theirPool.filter(i => i !== theirDef).length);
@@ -1247,7 +1355,7 @@ function Pairing({ team, onBack, onComplete }) {
   }
 
   const sideColor = { paired:C.dim, defender:C.blue, attacker:C.gold, pool:C.text };
-  const sideBorder = { paired:C.bord, defender:'#1e3a5a', attacker:'#5a4010', pool:C.bord };
+  const sideBorder = { paired:C.bord, defender:C.slateDim, attacker:C.amberDark, pool:C.bord };
 
   const sidebar = (
     <div className="pair-sidebar">
@@ -1257,8 +1365,8 @@ function Pairing({ team, onBack, onComplete }) {
           {RAGNAROK.map(r => {
             const st = poolStatus('our', r.id);
             return (
-              <div key={r.id} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
+              <div key={r.id} style={{ padding:'8px 10px', borderLeft:`3px solid ${sideBorder[st]}`, background:C.surf, opacity:st==='paired'?0.28:1 }}>
+                <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:600, color:sideColor[st] }}>{r.name}</div>
                 <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
               </div>
             );
@@ -1271,8 +1379,8 @@ function Pairing({ team, onBack, onComplete }) {
           {team.players.map((p, i) => {
             const st = poolStatus('their', i);
             return (
-              <div key={i} style={{ padding:'8px 10px', border:`1px solid ${sideBorder[st]}`, opacity:st==='paired'?0.28:1 }}>
-                <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
+              <div key={i} style={{ padding:'8px 10px', borderLeft:`3px solid ${sideBorder[st]}`, background:C.surf, opacity:st==='paired'?0.28:1 }}>
+                <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:600, color:st==='defender'?C.red:sideColor[st] }}>{p.faction}</div>
                 <div style={{ fontSize:12, visibility:'hidden' }}>–</div>
               </div>
             );
@@ -1287,9 +1395,9 @@ function Pairing({ team, onBack, onComplete }) {
     return (
       <>
         <Tag block mb={8}>Step 1 · Choose Defender</Tag>
-        <Cine size={20} weight={900} mb={6}>Select Your Defender</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:20 }}>
-          Ranked by average matchup score vs their remaining players. Pick secretly.
+          Choose secretly. Ranked by average matchup score vs their remaining players.
         </p>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {defRecs.map((i, rank) => {
@@ -1298,27 +1406,30 @@ function Pairing({ team, onBack, onComplete }) {
             const sel = ourDef === i;
             const exp = expanded === i;
             return (
-              <div key={i} style={{ border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent', transition:'border-color 0.12s' }}>
-                <div onClick={() => setOurDef(sel ? null : i)} style={{
+              <div key={i} style={{ borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}>
+                <div {...clickable(() => setOurDef(sel ? null : i))} style={{
                   display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
                 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
+                    <div style={{ fontSize:12, marginTop:4 }}>
+                      <span style={{ color:C.dim }}>Avg </span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
+                    </div>
                   </div>
                   <div className="def-row-badges">
                     {theirRemFacs.map((f, fi) => <Badge key={fi} r={gr(r.name, f)} />)}
                   </div>
-                  <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
                 </div>
-                <div onClick={e => { e.stopPropagation(); setExpanded(exp ? null : i); }} style={{
+                <div {...clickable(e => { e.stopPropagation(); setExpanded(exp ? null : i); })} style={{
                   padding:'0 14px 4px', cursor:'pointer', display:'flex', justifyContent:'flex-end'
                 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
                 </div>
                 {exp && (
-                  <div style={{ padding:'6px 14px 12px', borderTop:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:4 }}>
+                  <div style={{ padding:'10px 14px 14px', borderTop:`1px solid ${C.bord}`, borderBottom:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:6, marginBottom:4 }}>
                     {theirRemFacs.map((f, fi) => (
                       <div key={fi} style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <Badge r={gr(r.name, f)} />
@@ -1342,31 +1453,33 @@ function Pairing({ team, onBack, onComplete }) {
     return (
       <>
         <Tag block mb={8}>Step 1 · Reveal</Tag>
-        <Cine size={20} weight={900} mb={6}>Defenders Revealed</Cine>
+        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Defender</Cine>
         <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:18 }}>
-          Both teams reveal defenders simultaneously. Select who {team.name} put forward.
+          Both teams have revealed defenders. Select the faction {team.name} put forward.
         </p>
-        <div style={{ padding:'10px 14px', border:`1px solid #1e3a5a`, background:'rgba(30,58,90,0.12)', marginBottom:18 }}>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{RAGNAROK[ourDef].faction}</div>
         </div>
-        <Tag block mb={10} color={C.dim}>Their defender is…</Tag>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.gold}`, background:C.goldTint, marginBottom:14 }}>
+          <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.gold }}>Your input needed — select their revealed defender</span>
+        </div>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {theirPool.map(i => {
             const p = team.players[i];
             const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirDef === i;
             return (
-              <div key={i} onClick={() => setTheirDef(sel ? null : i)} style={{
+              <div key={i} {...clickable(() => setTheirDef(sel ? null : i))} style={{
                 display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(192,80,80,0.06)' : 'transparent'
+                borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
+                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>we rate this</span>
+                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
                   <Badge r={rat} />
                 </div>
               </div>
@@ -1382,30 +1495,43 @@ function Pairing({ team, onBack, onComplete }) {
   function PhaseOurAtk() {
     const atkRecs = [...ourPool].filter(i => i !== ourDef)
       .sort((a, b) => gs(RAGNAROK[b].name, theirDefFac||'') - gs(RAGNAROK[a].name, theirDefFac||''));
+    const autoSelected = atkRecs.length <= maxOurAtk;
+
+    // Auto-select if only exact number of choices available
+    if (autoSelected && ourAtk.length !== atkRecs.length) {
+      setTimeout(() => setOurAtk(atkRecs), 0);
+    }
+
     return (
       <>
         <Tag block mb={8}>Step 2 · Attackers</Tag>
-        <Cine size={20} weight={900} mb={6}>Select Your Attackers</Cine>
-        <div style={{ padding:'10px 14px', border:`1px solid #4a2020`, background:'rgba(74,32,32,0.12)', marginBottom:18 }}>
+        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Attackers</Cine>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.redBord}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.red} block mb={5}>Their Defender</Tag>
           <Cine size={13}>{team.players[theirDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{team.players[theirDef].faction}</div>
         </div>
-        <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:14 }}>
-          Pick {maxOurAtk} to attack their defender. Ranked by matchup vs their faction.
-        </p>
+        {autoSelected ? (
+          <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:14 }}>
+            <span style={{ fontSize:13, color:C.gold }}>Only {atkRecs.length} player{atkRecs.length > 1 ? 's' : ''} available — auto-selected.</span>
+          </div>
+        ) : (
+          <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:14 }}>
+            Pick {maxOurAtk} to attack their defender. Ranked by matchup vs their faction.
+          </p>
+        )}
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
           {atkRecs.map((i, rank) => {
             const r = RAGNAROK[i];
             const rat = gr(r.name, theirDefFac||'');
             const sel = ourAtk.includes(i);
             return (
-              <div key={i} onClick={() => toggleOurAtk(i)} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent'
+              <div key={i} {...clickable(() => !autoSelected && toggleOurAtk(i))} style={{
+                display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
+                cursor:autoSelected ? 'default' : 'pointer',
+                borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
-                {rank === 0 && !sel && <span style={{ position:'absolute', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>★</span>}
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:16 }}>#{rank+1}</span>
                 <div style={{ flex:1 }}>
                   <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                   <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1415,7 +1541,7 @@ function Pairing({ team, onBack, onComplete }) {
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {ourAtk.length} / {maxOurAtk} selected
         </div>
         <Btn gold full disabled={ourAtk.length !== maxOurAtk} onClick={() => setPhase('their_atk')}>Lock In →</Btn>
@@ -1425,36 +1551,49 @@ function Pairing({ team, onBack, onComplete }) {
 
   // Phase: enter their attackers
   function PhaseTheirAtk() {
+    const available = theirPool.filter(i => i !== theirDef);
+    const autoSelected = available.length <= maxTheirAtk;
+
+    if (autoSelected && theirAtk.length !== available.length) {
+      setTimeout(() => setTheirAtk(available), 0);
+    }
+
     return (
       <>
         <Tag block mb={8}>Step 2 · Reveal</Tag>
-        <Cine size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
-        <div style={{ padding:'10px 14px', border:`1px solid #1e3a5a`, background:'rgba(30,58,90,0.10)', marginBottom:18 }}>
+        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender Faces</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name} — select who they're sending</Cine>
         </div>
+        {autoSelected && (
+          <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:14 }}>
+            <span style={{ fontSize:13, color:C.slate }}>Only {available.length} opponent{available.length > 1 ? 's' : ''} remaining — auto-selected.</span>
+          </div>
+        )}
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
-          {theirPool.filter(i => i !== theirDef).map(i => {
+          {available.map(i => {
             const p = team.players[i];
             const rat = gr(RAGNAROK[ourDef].name, p.faction);
             const sel = theirAtk.includes(i);
             return (
-              <div key={i} onClick={() => toggleTheirAtk(i)} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'10px 14px', cursor:'pointer',
-                border:`1px solid ${sel ? C.red : C.bord}`, background:sel ? 'rgba(192,80,80,0.06)' : 'transparent'
+              <div key={i} {...clickable(() => !autoSelected && toggleTheirAtk(i))} style={{
+                display:'flex', alignItems:'center', gap:12, padding:'10px 14px',
+                cursor:autoSelected ? 'default' : 'pointer',
+                borderLeft:`3px solid ${sel ? C.redBord : C.bord}`, background:sel ? C.surf : 'transparent'
               }}>
                 <div style={{ flex:1 }}>
-                  <Cine size={12} color={sel ? '#e08080' : C.white}>{p.faction}</Cine>
+                  <Cine size={12} color={sel ? C.redLight : C.white}>{p.faction}</Cine>
                 </div>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ fontSize:12, color:C.dim }}>our matchup</span>
+                  <span style={{ fontSize:12, color:C.dim }}>Your rating</span>
                   <Badge r={rat} />
                 </div>
               </div>
             );
           })}
         </div>
-        <div style={{ textAlign:'center', fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
+        <div style={{ textAlign:'center', fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:2, marginBottom:14 }}>
           {theirAtk.length} / {maxTheirAtk} selected
         </div>
         <Btn gold full disabled={theirAtk.length !== maxTheirAtk} onClick={() => { setAcceptedTheirAtk(null); setChosenOurAtk(null); setPhase('resolve'); }}>Proceed to Resolution →</Btn>
@@ -1474,27 +1613,36 @@ function Pairing({ team, onBack, onComplete }) {
     return (
       <>
         <Tag block mb={8}>Step 3 · Resolve</Tag>
-        <Cine size={20} weight={900} mb={18}>Defenders Choose</Cine>
+        <Cine as="h2" size={20} weight={900} mb={18}>Defenders Choose</Cine>
 
         {/* Our defender picks */}
-        <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:16 }}>
+        <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.surf, padding:'16px 18px', marginBottom:16 }}>
           <Tag color={C.blue} block mb={10}>Your Defender Picks Their Opponent</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
+            <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
           </div>
+          {theirAtk.length === 1 ? (
+            (() => { if (acceptedTheirAtk === null) setTimeout(() => setAcceptedTheirAtk(theirAtk[0]), 0); return null; })()
+          ) : null}
+          {theirAtk.length === 1 && (
+            <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:12 }}>
+              <span style={{ fontSize:13, color:C.gold }}>Only 1 attacker — auto-selected.</span>
+            </div>
+          )}
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {theirAtk.map(i => {
               const p = team.players[i];
               const rat = gr(ourDefP.name, p.faction);
-              const isRec = i === bestTheirAtk;
+              const isRec = i === bestTheirAtk && theirAtk.length > 1;
               const sel = acceptedTheirAtk === i;
               return (
-                <div key={i} onClick={() => setAcceptedTheirAtk(sel ? null : i)} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
+                <div key={i} {...clickable(() => theirAtk.length > 1 && setAcceptedTheirAtk(sel ? null : i))} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  cursor:theirAtk.length > 1 ? 'pointer' : 'default',
+                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{p.faction}</Cine>
                   </div>
@@ -1506,25 +1654,34 @@ function Pairing({ team, onBack, onComplete }) {
         </div>
 
         {/* Our attacker vs their defender */}
-        <div style={{ border:`1px solid ${C.bord}`, padding:'16px 18px', marginBottom:18 }}>
-          <Tag color={C.gold} block mb={10}>Our Attacker vs Their Defender</Tag>
+        <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px 18px', marginBottom:18 }}>
+          <Tag color={C.gold} block mb={10}>Pick Your Attacker</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            Their defender: <span style={{ fontFamily:'Space Grotesk, sans-serif', color:C.white }}>{theirDefP.name}</span>
+            Their defender: <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.name}</span>
             <span style={{ color:C.dim, fontStyle:'italic' }}> ({theirDefP.faction})</span>
           </div>
+          {ourAtk.length === 1 ? (
+            (() => { if (chosenOurAtk === null) setTimeout(() => setChosenOurAtk(ourAtk[0]), 0); return null; })()
+          ) : null}
+          {ourAtk.length === 1 && (
+            <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, marginBottom:12 }}>
+              <span style={{ fontSize:13, color:C.gold }}>Only 1 attacker — auto-selected.</span>
+            </div>
+          )}
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             {ourAtk.map(i => {
               const r = RAGNAROK[i];
               const rat = gr(r.name, theirDefP.faction);
-              const isRec = i === bestOurAtk;
+              const isRec = i === bestOurAtk && ourAtk.length > 1;
               const sel = chosenOurAtk === i;
               return (
-                <div key={i} onClick={() => setChosenOurAtk(sel ? null : i)} style={{
-                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                  border:`1px solid ${sel ? C.gold : C.bord}`, background:sel ? 'rgba(200,168,72,0.06)' : 'transparent',
+                <div key={i} {...clickable(() => ourAtk.length > 1 && setChosenOurAtk(sel ? null : i))} style={{
+                  display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+                  cursor:ourAtk.length > 1 ? 'pointer' : 'default',
+                  borderLeft:`3px solid ${sel ? C.gold : C.bord}`, background:sel ? C.surf : 'transparent',
                   position:'relative'
                 }}>
-                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
+                  {isRec && <span style={{ position:'absolute', top:5, right:8, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.green, letterSpacing:1 }}>RECOMMENDED</span>}
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
@@ -1549,24 +1706,25 @@ function Pairing({ team, onBack, onComplete }) {
       return (
         <>
           <Tag center block mb={18} style={{ fontSize:12, letterSpacing:5 }}>◆ All Pairings Complete ◆</Tag>
-          <Cine size={22} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
+          <Cine as="h1" size={24} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:32 }}>
             {pairings.map((p, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, background:'rgba(200,168,72,0.03)' }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.goldD, minWidth:64, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 10px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
           </div>
-          <Btn gold onClick={onBack} full>← Back to Teams</Btn>
+          {onScores && <Btn gold onClick={onScores} full style={{ marginBottom:10 }}>Enter Scores →</Btn>}
+          <Btn ghost onClick={onBack} full>← Back to Dashboard</Btn>
         </>
       );
     }
@@ -1574,18 +1732,18 @@ function Pairing({ team, onBack, onComplete }) {
     return (
       <>
         <Tag block mb={18} style={{ fontSize:12, letterSpacing:4 }}>◆ Cycle Complete</Tag>
-        <Cine size={20} weight={900} mb={18}>Pairings Confirmed</Cine>
+        <Cine as="h2" size={20} weight={900} mb={18}>Pairings Confirmed</Cine>
         {cycleRes && (
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:22 }}>
             {[cycleRes.p1, cycleRes.p2].map((p, i) => (
-              <div key={i} style={{ padding:'12px 16px', border:'1px solid #1a381a', background:'rgba(20,56,20,0.08)' }}>
+              <div key={i} style={{ padding:'12px 16px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
                 <Tag color={C.green} block mb={6}>Confirmed</Tag>
                 <div style={{ display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.us.faction}</span>
                   <span style={{ color:C.goldD }}>⚔</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1599,7 +1757,7 @@ function Pairing({ team, onBack, onComplete }) {
                 )}
                 {cycleRes.refusedOur && (
                   <div style={{ fontSize:13, color:C.dim }}>
-                    ↩ <span style={{ color:C.blue }}>{cycleRes.refusedOur.name}</span> ({cycleRes.refusedOur.faction}) back to Ragnarok
+                    ↩ <span style={{ color:C.blue }}>{cycleRes.refusedOur.name}</span> ({cycleRes.refusedOur.faction}) back to your pool
                   </div>
                 )}
               </div>
@@ -1626,22 +1784,24 @@ function Pairing({ team, onBack, onComplete }) {
   const curStep = stepPhase[phase] ?? 0;
 
   return (
-    <div style={{ maxWidth:940, margin:'0 auto', padding:'28px 16px' }}>
+    <div className="page-enter" style={{ maxWidth:940, margin:'0 auto', padding:'28px 16px' }}>
       <Back onClick={onBack} />
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:16, flexWrap:'wrap', gap:10 }}>
         <div>
           <Tag color={C.dim} block mb={4}>Round Pairing vs</Tag>
-          <Cine size={24} weight={900}>{team.name}</Cine>
+          <Cine as="h1" size={24} weight={900}>{team.name}</Cine>
         </div>
         <div style={{ textAlign:'right' }}>
           <Tag color={C.dim} block mb={4}>Pairings</Tag>
-          <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
+          <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:26, fontWeight:900, color:C.gold }}>{pairings.length}<span style={{ color:C.dim, fontSize:13 }}> / 5</span></span>
         </div>
       </div>
 
       {/* Progress */}
-      <div style={{ height:2, background:C.bord, marginBottom:14 }}>
-        <div style={{ height:'100%', background:C.gold, width:`${(pairings.length/5)*100}%`, transition:'width 0.5s' }} />
+      <div style={{ display:'flex', gap:3, marginBottom:14 }}>
+        {Array.from({ length:5 }, (_, i) => (
+          <div key={i} style={{ flex:1, height:4, background: i < pairings.length ? C.gold : C.bord, transition:'background 0.4s cubic-bezier(0.25,1,0.5,1)' }} />
+        ))}
       </div>
 
       {/* Step indicator */}
@@ -1649,15 +1809,15 @@ function Pairing({ team, onBack, onComplete }) {
         {steps.map((s, i) => {
           const done = i < curStep, active = i === curStep;
           return (
-            <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3 }}>
-              <div style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
+            <div key={i} style={{ flex:1, borderTop:`2px solid ${done||active ? C.gold : C.bord}`, paddingTop:7, opacity:done||active ? 1 : 0.3, transition:'border-color 0.3s cubic-bezier(0.25,1,0.5,1), opacity 0.3s cubic-bezier(0.25,1,0.5,1)' }}>
+              <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, letterSpacing:1.5, color:active ? C.gold : done ? C.goldD : C.dim }}>{s}</div>
             </div>
           );
         })}
       </div>
 
       <div className="pair-layout">
-        <div style={{ flex:1, border:`1px solid ${C.bord}`, padding:'22px 20px', minWidth:0 }}>
+        <div style={{ flex:1, borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'22px 20px', minWidth:0 }}>
           {panels[phase]}
         </div>
         {sidebar}
@@ -1668,16 +1828,16 @@ function Pairing({ team, onBack, onComplete }) {
           <Divider label="Confirmed Pairings" />
           <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
             {pairings.map((p, i) => (
-              <div key={i} style={{ display:'flex', alignItems:'center', padding:'9px 14px', border:'1px solid #1a361a', background:'rgba(18,54,18,0.05)' }}>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
+              <div key={i} style={{ display:'flex', alignItems:'center', padding:'10px 14px', borderLeft:`3px solid ${C.greenBord}`, background:C.surf }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, minWidth:58, letterSpacing:1 }}>TABLE {i+1}</span>
                 <div style={{ flex:1 }}>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.blue }}>{p.us.name}</span>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginLeft:6 }}>{p.us.faction}</span>
                 </div>
                 <span style={{ color:C.goldD, margin:'0 8px' }}>⚔</span>
                 <div style={{ flex:1, textAlign:'right' }}>
                   <span style={{ fontSize:12, color:C.dim, fontStyle:'italic', marginRight:6 }}>{p.them.faction}</span>
-                  <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
+                  <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.red }}>{p.them.faction}</span>
                 </div>
               </div>
             ))}
@@ -1722,37 +1882,37 @@ function ScoringTableEditor({ table, onSave, onBack }) {
   };
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Event Scoring</Tag>
-      <Cine size={24} weight={900} mb={6}>VP to Game Points</Cine>
+      <Cine as="h1" size={24} weight={900} mb={6}>VP to Game Points</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Edit the conversion table used to calculate game points from VP difference.
       </p>
 
       <div style={{ display:'flex', gap:8, padding:'8px 12px', borderBottom:`1px solid ${C.bord}`, marginBottom:8 }}>
-        <span style={{ flex:1, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim }}>VP Diff</span>
-        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Winner</span>
-        <span style={{ width:70, fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Loser</span>
+        <span style={{ flex:1, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim }}>VP Diff</span>
+        <span style={{ width:70, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Winner</span>
+        <span style={{ width:70, fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, textAlign:'center' }}>Loser</span>
         <span style={{ width:44 }} />
       </div>
 
       <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:20 }}>
         {local.map((row, idx) => (
-          <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'6px 12px', border:`1px solid ${C.bord}` }}>
+          <div key={idx} style={{ display:'flex', gap:8, alignItems:'center', padding:'10px 12px', borderLeft:`3px solid ${C.bord}`, background:C.surf }}>
             <div style={{ flex:1, display:'flex', gap:4, alignItems:'center' }}>
               <input type="number" min="0" value={row.min} onChange={e => update(idx, 'min', e.target.value)}
-                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
               <span style={{ color:C.dim }}>-</span>
               <input type="number" min="0" value={row.max} onChange={e => update(idx, 'max', e.target.value)}
-                style={{ width:50, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
+                style={{ width:50, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
             </div>
             <input type="number" min="0" max="20" value={row.winGP} onChange={e => update(idx, 'winGP', e.target.value)}
-              style={{ width:70, background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none', textAlign:'center' }} />
-            <span style={{ width:70, fontFamily:'IBM Plex Mono, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
+              style={{ width:70, background:C.input, border:`1px solid ${C.bord}`, color:C.green, padding:'10px 6px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+            <span style={{ width:70, fontFamily:'Source Code Pro, monospace', fontSize:13, color:C.red, textAlign:'center' }}>{20 - row.winGP}</span>
             <button onClick={() => removeRow(idx)} style={{
               background:'transparent', border:`1px solid ${C.bord}`, color:C.red,
-              width:44, height:34, cursor:'pointer', fontSize:14, fontFamily:'IBM Plex Mono, monospace'
+              width:44, height:34, cursor:'pointer', fontSize:14, fontFamily:'Source Code Pro, monospace'
             }}>✕</button>
           </div>
         ))}
@@ -1761,13 +1921,13 @@ function ScoringTableEditor({ table, onSave, onBack }) {
       <Btn ghost sm onClick={addRow} style={{ marginBottom:20 }}>+ Add Row</Btn>
 
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
-        {saving && <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
-        {!saving && lastSaved && <span style={{ fontSize:12, color:C.green }}>Saved</span>}
+        {saving && <span aria-live="polite" style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Saving...</span>}
+        {!saving && lastSaved && <span aria-live="polite" style={{ fontSize:12, color:C.green }}>Saved</span>}
       </div>
 
       <div style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-        <Btn gold onClick={handleSave}>Save Table</Btn>
-        <Btn ghost sm onClick={handleReset}>Reset to Default</Btn>
+        <Btn gold disabled={saving} onClick={handleSave}>{saving ? 'Saving...' : 'Save Table'}</Btn>
+        <Btn ghost sm onClick={handleReset}>Reset to Defaults</Btn>
       </div>
     </div>
   );
@@ -1781,17 +1941,17 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
     .filter(n => rounds[n]?.complete);
 
   return (
-    <div style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
       <Tag block mb={10}>Edit Scores</Tag>
-      <Cine size={24} weight={900} mb={8}>Select a Round</Cine>
+      <Cine as="h1" size={24} weight={900} mb={8}>Select a Round</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
         Choose a completed round to review or edit its scores.
       </p>
 
       {completedRounds.length === 0 && (
         <div style={{ padding:'16px', border:`1px solid ${C.bord}`, textAlign:'center' }}>
-          <span style={{ fontSize:13, color:C.dim, fontStyle:'italic' }}>No completed rounds yet.</span>
+          <span style={{ fontSize:13, color:C.dim, fontStyle:'italic' }}>No rounds have been scored yet. Complete a round first.</span>
         </div>
       )}
 
@@ -1804,18 +1964,18 @@ function RoundPicker({ rounds, teams, event, onSelect, onBack }) {
           const result = ourTotal >= 55 ? 'W' : ourTotal <= 45 ? 'L' : 'D';
           const resultCol = result === 'W' ? C.green : result === 'L' ? C.red : C.gold;
           return (
-            <div key={n} onClick={() => onSelect(n)} style={{
+            <div key={n} {...clickable(() => onSelect(n))} style={{
               display:'flex', alignItems:'center', padding:'14px 16px', border:`1px solid ${C.bord}`,
-              cursor:'pointer', transition:'border-color 0.15s', gap:12
+              cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', gap:12
             }}
               onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
               onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.dim, minWidth:70 }}>Round {n}</span>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, color:C.white, flex:1 }}>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.dim, minWidth:70 }}>Round {n}</span>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white, flex:1 }}>
                 {opp ? `vs ${opp.name}` : 'Unknown'}
               </span>
-              <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
-              <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
+              <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:resultCol }}>{ourTotal}-{theirTotal}</span>
+              <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, fontWeight:700, color:resultCol }}>{result}</span>
             </div>
           );
         })}
@@ -1841,13 +2001,18 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
     const next = [...scores];
     next[idx] = { ...next[idx], [field]: value };
     if (inputMode === 'vp') {
-      const ov = parseInt(field === 'ourVP' ? value : next[idx].ourVP);
-      const tv = parseInt(field === 'theirVP' ? value : next[idx].theirVP);
-      if (!isNaN(ov) && !isNaN(tv)) {
+      const ov = Math.max(0, Math.min(100, parseInt(field === 'ourVP' ? value : next[idx].ourVP, 10) || 0));
+      const tv = Math.max(0, Math.min(100, parseInt(field === 'theirVP' ? value : next[idx].theirVP, 10) || 0));
+      if (next[idx].ourVP !== '' && next[idx].theirVP !== '') {
         const [og, tg] = vpToGP(ov, tv);
         next[idx].ourGP = og;
         next[idx].theirGP = tg;
       }
+    } else {
+      const og = Math.max(0, Math.min(20, parseInt(next[idx].ourGP, 10) || 0));
+      const tg = Math.max(0, Math.min(20, parseInt(next[idx].theirGP, 10) || 0));
+      next[idx].ourGP = next[idx].ourGP === '' ? '' : og;
+      next[idx].theirGP = next[idx].theirGP === '' ? '' : tg;
     }
     setScores(next);
   };
@@ -1858,7 +2023,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   };
 
   const saveScores = () => {
-    const complete = scores.every(s => (s.ourGP !== '' && s.theirGP !== ''));
+    const complete = scores.every(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10)));
     const updated = { ...rounds, [roundNum]: { ...round, opponentId: round.opponentId || opponentId, scores, complete } };
     onSave(updated);
   };
@@ -1867,11 +2032,10 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const theirTotal = scores.reduce((s, sc) => s + (parseInt(sc.theirGP) || 0), 0);
 
   return (
-    <div style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
+    <div className="page-enter" style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={8}>Round {roundNum}</Tag>
-      <Cine size={22} weight={900} mb={8}>
-        {opponent ? `vs ${opponent.name}` : `Round ${roundNum}`}
+      <Cine as="h1" size={24} weight={900} mb={8}>
+        {opponent ? `Round ${roundNum} — vs ${opponent.name}` : `Round ${roundNum}`}
       </Cine>
 
       {!round.opponentId && (
@@ -1881,9 +2045,12 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           </p>
           <Tag block mb={10}>Opponent</Tag>
           <select value={opponentId} onChange={e => setOpponentId(e.target.value)}
-            style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
+            style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:opponentId ? C.text : C.dim, padding:'12px 12px', fontSize:14, outline:'none', marginBottom:12 }}>
             <option value="">— Select Opponent —</option>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+            {teams.map(t => {
+              const alreadyPlayed = Object.values(rounds).some(r => r?.opponentId === t.id);
+              return <option key={t.id} value={t.id}>{t.name}{alreadyPlayed ? ' ✓ (played)' : ''}</option>;
+            })}
           </select>
           <Btn gold full disabled={!opponentId} onClick={assignOpponent}>Assign Opponent</Btn>
         </div>
@@ -1894,7 +2061,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
           {/* Read-only summary for completed rounds */}
           {round.complete && !editing && (
             <>
-              <Tag block mb={12} color={C.dim}>Scores Submitted</Tag>
+              <Tag block mb={12} color={C.green}>Round Complete</Tag>
               <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:16 }}>
                 {(round.scores ?? []).map((sc, idx) => {
                   const pairing = pairings[idx];
@@ -1906,19 +2073,19 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                       {usPlayer && <span style={{ fontSize:12, color:C.blue, flex:1 }}>{usPlayer.name} <span style={{ color:C.dim }}>vs</span> <span style={{ color:C.red }}>{themFaction}</span></span>}
                       {!usPlayer && <span style={{ fontSize:12, color:C.dim, flex:1 }}>Table {idx + 1}</span>}
                       {sc.ourVP !== '' && sc.ourVP !== undefined && <span style={{ fontSize:12, color:C.dim }}>VP: {sc.ourVP}-{sc.theirVP}</span>}
-                      <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:14, fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
                         {sc.ourGP}-{sc.theirGP}
                       </span>
                     </div>
                   );
                 })}
               </div>
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
-                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
                 </span>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
                 </span>
               </div>
@@ -1940,40 +2107,49 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   const usPlayer = pairing ? RAGNAROK.find(r => r.id === pairing.usIdx) : null;
                   const themFaction = pairing && opponent ? opponent.players[pairing.themIdx]?.faction : null;
                   return (
-                    <div key={idx} style={{ border:`1px solid ${C.bord}`, padding:'12px 14px' }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                    <div key={idx} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'12px 14px' }}>
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8, flexWrap:'wrap', gap:4 }}>
                         <Tag color={C.dim}>Table {idx + 1}</Tag>
-                        {usPlayer && <span style={{ fontSize:12, color:C.blue }}>{usPlayer.name} vs <span style={{ color:C.red }}>{themFaction}</span></span>}
+                        {usPlayer ? (
+                          <span style={{ fontSize:13, fontFamily:'Chakra Petch, sans-serif' }}>
+                            <span style={{ color:C.gold, fontWeight:600 }}>{usPlayer.name}</span>
+                            <span style={{ color:C.dim }}> ({usPlayer.faction})</span>
+                            <span style={{ color:C.dim }}> vs </span>
+                            <span style={{ color:C.slate, fontWeight:600 }}>{themFaction}</span>
+                          </span>
+                        ) : (
+                          <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Pairing not recorded</span>
+                        )}
                       </div>
                       {inputMode === 'vp' ? (
-                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                          <div style={{ flex:1 }}>
+                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our VP</Tag>
-                            <input type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} our VP`} type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
-                          <div style={{ flex:1 }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their VP</Tag>
-                            <input type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} their VP`} type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                           {sc.ourGP !== '' && sc.ourGP !== undefined && (
-                            <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:13, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
+                            <span className="score-result" style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
                               {sc.ourGP}-{sc.theirGP}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-                          <div style={{ flex:1 }}>
+                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Our GP</Tag>
-                            <input type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} our game points`} type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
-                          <div style={{ flex:1 }}>
+                          <div style={{ flex:1, minWidth:100 }}>
                             <Tag block mb={4} color={C.dim}>Their GP</Tag>
-                            <input type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                              style={{ width:'100%', background:'#0c0e14', border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:14, fontFamily:'IBM Plex Mono, monospace', outline:'none' }} />
+                            <input aria-label={`Table ${idx+1} their game points`} type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
                           </div>
                         </div>
                       )}
@@ -1982,12 +2158,12 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                 })}
               </div>
 
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', border:`1px solid ${C.gold}`, marginBottom:16 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:16 }}>
                 <Tag color={C.gold}>Round Total</Tag>
-                <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal} - {theirTotal}
                 </span>
-                <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                   {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
                 </span>
               </div>
@@ -2002,20 +2178,20 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                       <div key={idx} style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:C.text }}>
                         <span>Table {idx + 1}</span>
                         {inputMode === 'vp' && sc.ourVP !== '' && <span style={{ color:C.dim }}>VP: {sc.ourVP} - {sc.theirVP}</span>}
-                        <span style={{ fontFamily:'IBM Plex Mono, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
+                        <span style={{ fontFamily:'Source Code Pro, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
                           {sc.ourGP} - {sc.theirGP}
                         </span>
                       </div>
                     ))}
                   </div>
                   <div style={{ textAlign:'center', marginBottom:14 }}>
-                    <span style={{ fontFamily:'IBM Plex Mono, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
+                    <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
                       Total: {ourTotal} - {theirTotal} ({ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'})
                     </span>
                   </div>
                   <div style={{ display:'flex', gap:10 }}>
                     <Btn gold full onClick={() => { saveScores(); setConfirmSave(false); setEditing(false); }}>Confirm</Btn>
-                    <Btn ghost full onClick={() => setConfirmSave(false)}>Edit</Btn>
+                    <Btn ghost full onClick={() => setConfirmSave(false)}>Go Back</Btn>
                   </div>
                 </div>
               )}
@@ -2033,9 +2209,9 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
               if (!player || !faction) return;
               const ourGP = parseInt(sc.ourGP);
               if (isNaN(ourGP)) return;
-              const currentRating = matrixData[player.name]?.[faction] ?? '?';
+              const currentRating = matrixData[player.name]?.[faction] ?? 'D';
               const suggested = gpToSuggestedRating(ourGP);
-              if (currentRating !== '?' && suggested !== currentRating) {
+              if (suggested !== currentRating) {
                 const rIdx = RATINGS.indexOf(currentRating);
                 const sIdx = RATINGS.indexOf(suggested);
                 suggestions.push({ player: player.name, faction, current: currentRating, suggested, isUpgrade: sIdx < rIdx, key: `${player.name}-${faction}` });
@@ -2071,12 +2247,12 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                   {suggestions.map(s => {
                     const checked = !!selectedSuggestions[s.key];
                     return (
-                      <div key={s.key} onClick={() => toggleSuggestion(s.key)} style={{
+                      <div key={s.key} {...clickable(() => toggleSuggestion(s.key))} style={{
                         display:'flex', alignItems:'center', gap:10, padding:'10px 14px', cursor:'pointer',
-                        border:`1px solid ${checked ? C.gold : C.bord}`, background:checked ? 'rgba(200,168,72,0.06)' : 'transparent'
+                        borderLeft:`3px solid ${checked ? C.gold : C.bord}`, background:checked ? C.surf : 'transparent'
                       }}>
                         <span style={{ fontSize:16, color:checked ? C.gold : C.dim }}>{checked ? '☑' : '☐'}</span>
-                        <span style={{ fontFamily:'Space Grotesk, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
+                        <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.white, minWidth:60 }}>{s.player}</span>
                         <span style={{ fontSize:12, color:C.dim }}>vs {s.faction}</span>
                         <span style={{ marginLeft:'auto', display:'flex', alignItems:'center', gap:6 }}>
                           <Badge r={s.current} />
@@ -2258,7 +2434,7 @@ export default function App() {
   const saveEvent = (evt) => {
     const updated = events.find(e => e.id === evt.id) ? events.map(e => e.id === evt.id ? evt : e) : [...events, evt];
     setEvents(updated);
-    return fetch(`${FIREBASE_URL}/events/${evt.id}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(evt) }).then(() => {});
+    return fetch(`${FIREBASE_URL}/events/${evt.id}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(evt) }).then(() => {}).catch(() => {});
   };
 
   const saveEventField = (field, value) => {
@@ -2266,7 +2442,7 @@ export default function App() {
     const updated = { ...activeEvent, [field]: value };
     setActiveEvent(updated);
     setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
-    return fetch(`${FIREBASE_URL}/events/${activeEvent.id}/${field}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(value) }).then(() => {});
+    return fetch(`${FIREBASE_URL}/events/${activeEvent.id}/${field}.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(value) }).then(() => {}).catch(() => {});
   };
 
   const saveMatrix = (m) => { setMatrixData(m); matrix = m; return saveEventField('matrix', m); };
@@ -2274,8 +2450,8 @@ export default function App() {
   const saveOpponents = (t) => { setTeams(t); return saveEventField('opponents', t); };
   const saveScoringTable = (t) => { scoringTable = t; return saveEventField('scoringTable', t); };
   const saveRounds = (r) => { setRoundsData(r); return saveEventField('rounds', r); };
-  const saveDefs = (d) => { setDefsData(d); defs = d; return fetch(`${FIREBASE_URL}/defs.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(() => {}); };
-  const saveFactions = (f) => { setFactionList(f); FACTIONS = f; return fetch(`${FIREBASE_URL}/factions.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f) }).then(() => {}); };
+  const saveDefs = (d) => { setDefsData(d); defs = d; return fetch(`${FIREBASE_URL}/defs.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(d) }).then(() => {}).catch(() => {}); };
+  const saveFactions = (f) => { setFactionList(f); FACTIONS = f; return fetch(`${FIREBASE_URL}/factions.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(f) }).then(() => {}).catch(() => {}); };
 
   const handleSaveOpponent = team => {
     const updated = teams.find(t => t.id === team.id) ? teams.map(t => t.id === team.id ? team : t) : [...teams, team];
@@ -2299,6 +2475,7 @@ export default function App() {
     <>
       <style>{CSS}</style>
       <NavBar {...navProps} activeEvent={activeEvent} />
+      <main>
 
       {screen === 'events' && <EventList events={events} onSelect={loadEvent} onAdd={() => { setEditEventData(null); setScreen('eventSetup'); }} onDelete={handleDeleteEvent} onSettings={evt => { setEditEventData(evt); setScreen('eventEdit'); }} />}
       {screen === 'eventSetup' && <EventSetup events={events} onSave={handleSaveEvent} onBack={() => setScreen('events')} />}
@@ -2313,6 +2490,22 @@ export default function App() {
           const mapped = pairings.map((p, i) => ({ table: i + 1, usIdx: p.us.id, themIdx: selectedTeam.players.indexOf(p.them) }));
           saveRounds({ ...roundsData, [roundNum]: { ...roundsData[roundNum], pairings: mapped } });
         }
+      }} onScores={() => {
+        let roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
+        if (!roundNum) {
+          // Find first unassigned round and assign this opponent
+          const numR = activeEvent?.numRounds ?? 5;
+          for (let n = 1; n <= numR; n++) {
+            if (!roundsData[n]?.opponentId) {
+              roundNum = String(n);
+              const updated = { ...roundsData, [n]: { ...roundsData[n], opponentId: selectedTeam.id } };
+              saveRounds(updated);
+              break;
+            }
+          }
+        }
+        if (roundNum) setScreen('round-' + roundNum);
+        else setScreen('home');
       }} />}
       {activeEvent && screen === 'ratings' && <Ratings matrixData={matrixData} onSave={saveMatrix} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'defs' && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('home')} />}
@@ -2324,6 +2517,7 @@ export default function App() {
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
       {!activeEvent && (screen === 'factions') && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('events')} />}
+      </main>
     </>
   );
 }

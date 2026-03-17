@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contrast Fix Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box;margin:0;padding:0; }
+  body { background:#0a0806;color:#b0a898;font-family:'Source Code Pro',monospace;min-height:100vh;padding:20px; }
+  .container { max-width:800px;margin:0 auto; }
+  h1 { font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;color:#c88838;text-align:center;margin-bottom:4px; }
+  .sub { text-align:center;color:#908878;font-size:13px;margin-bottom:28px; }
+
+  .split { display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px; }
+  .panel { padding:20px;min-height:200px; }
+  .panel-label { font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px; }
+  .panel-label.bad { color:#c05050; }
+  .panel-label.good { color:#60a830; }
+
+  .swatch { display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #1e1814; }
+  .swatch-color { width:40px;height:28px;border:1px solid #2a2218; }
+  .swatch-info { flex:1; }
+  .swatch-name { font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:600;color:#e8dcd0; }
+  .swatch-hex { font-size:11px;color:#706860; }
+  .swatch-ratio { font-family:'Source Code Pro',monospace;font-size:12px;font-weight:700; }
+  .fail { color:#e04848; }
+  .pass { color:#80d040; }
+
+  .demo { margin-top:24px; }
+  .demo-section { background:#0e0c0a;border-left:3px solid #1e1814;padding:20px;margin-bottom:16px; }
+
+  .mock-label-old { font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase; }
+  .mock-label-new { font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase; }
+  .mock-heading { font-family:'Chakra Petch',sans-serif;font-size:22px;font-weight:700;color:#e8dcd0;margin-bottom:4px; }
+  .mock-body { font-size:13px;margin-bottom:12px; }
+  .mock-badges { display:flex;gap:4px;margin-bottom:12px; }
+  .mock-badge { padding:4px 10px;font-size:12px;font-weight:700;border-left:2px solid; }
+  .mock-row { display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #1e1814; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Accessibility Contrast Fix</h1>
+<p class="sub">Before vs After — fixing colours that fail WCAG AA 4.5:1</p>
+
+<!-- Swatches comparison -->
+<div class="split">
+  <div class="panel" style="background:#0a0806;">
+    <div class="panel-label bad">Before (Failing)</div>
+
+    <div class="swatch">
+      <div class="swatch-color" style="background:#706860;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Dim Text</div>
+        <div class="swatch-hex">#706860</div>
+      </div>
+      <div class="swatch-ratio fail">3.2:1 ✗</div>
+    </div>
+    <div style="padding:8px 0;color:#706860;font-size:13px;font-style:italic;">Necrons · 2g · avg 14.0</div>
+
+    <div class="swatch" style="margin-top:8px;">
+      <div class="swatch-color" style="background:#8a6028;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Amber Dim</div>
+        <div class="swatch-hex">#8a6028</div>
+      </div>
+      <div class="swatch-ratio fail">3.0:1 ✗</div>
+    </div>
+    <div style="padding:8px 0;color:#8a6028;font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;">// Active Round</div>
+  </div>
+
+  <div class="panel" style="background:#0a0806;">
+    <div class="panel-label good">After (Passing)</div>
+
+    <div class="swatch">
+      <div class="swatch-color" style="background:#908878;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Dim Text</div>
+        <div class="swatch-hex">#908878</div>
+      </div>
+      <div class="swatch-ratio pass">4.6:1 ✓</div>
+    </div>
+    <div style="padding:8px 0;color:#908878;font-size:13px;font-style:italic;">Necrons · 2g · avg 14.0</div>
+
+    <div class="swatch" style="margin-top:8px;">
+      <div class="swatch-color" style="background:#a87830;"></div>
+      <div class="swatch-info">
+        <div class="swatch-name">Amber Dim</div>
+        <div class="swatch-hex">#a87830</div>
+      </div>
+      <div class="swatch-ratio pass">4.5:1 ✓</div>
+    </div>
+    <div style="padding:8px 0;color:#a87830;font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;">// Active Round</div>
+  </div>
+</div>
+
+<!-- Full demo with fixed colours -->
+<div class="demo">
+  <div class="demo-section">
+    <div class="mock-label-new" style="color:#a87830;margin-bottom:6px;">// Kent Teams March 2026</div>
+    <div class="mock-heading">Round 3</div>
+    <div class="mock-body" style="color:#908878;font-style:italic;margin-bottom:16px;">Select your round opponent to view matchups and begin pairing</div>
+
+    <div style="display:flex;gap:12px;margin-bottom:16px;">
+      <div style="border-left:3px solid #60a830;background:#0a0806;padding:12px 14px;flex:1;">
+        <div class="mock-label-new" style="color:#908878;font-size:12px;letter-spacing:2px;margin-bottom:6px;">RECORD</div>
+        <div style="font-size:20px;font-weight:700;color:#80d040;">2-0-0</div>
+      </div>
+      <div style="border-left:3px solid #c88838;background:#0a0806;padding:12px 14px;flex:1;">
+        <div class="mock-label-new" style="color:#908878;font-size:12px;letter-spacing:2px;margin-bottom:6px;">GAME POINTS</div>
+        <div style="font-size:20px;font-weight:700;color:#c88838;">118-82</div>
+      </div>
+    </div>
+
+    <div class="mock-row">
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:600;color:#e8dcd0;flex:1;">Ollie</span>
+      <span style="font-size:12px;color:#908878;font-style:italic;">Necrons</span>
+      <span style="font-size:14px;font-weight:700;color:#c88838;min-width:30px;text-align:right;">28</span>
+      <span style="font-size:12px;color:#908878;">2g · avg 14.0</span>
+    </div>
+    <div class="mock-row">
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:13px;font-weight:600;color:#e8dcd0;flex:1;">Jacob</span>
+      <span style="font-size:12px;color:#908878;font-style:italic;">Orks (GT)</span>
+      <span style="font-size:14px;font-weight:700;color:#c88838;min-width:30px;text-align:right;">26</span>
+      <span style="font-size:12px;color:#908878;">2g · avg 13.0</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:20px 0 8px;">
+      <div style="flex:1;height:1px;background:#1e1814;"></div>
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a87830;">Opponents</span>
+      <div style="flex:1;height:1px;background:#1e1814;"></div>
+    </div>
+
+    <div style="border-left:3px solid #1e1814;background:#0a0806;padding:14px 16px;margin-bottom:6px;">
+      <div style="font-family:'Chakra Petch',sans-serif;font-size:14px;font-weight:700;color:#e8dcd0;margin-bottom:6px;">Drooling Cretins</div>
+      <div style="font-size:12px;color:#908878;font-style:italic;">Drukhari, Grey Knights, Custodes, Tau, Ultramarines</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:12px;margin:20px 0 8px;">
+      <div style="flex:1;height:1px;background:#1e1814;"></div>
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:12px;letter-spacing:3px;text-transform:uppercase;color:#a87830;">Rounds</span>
+      <div style="flex:1;height:1px;background:#1e1814;"></div>
+    </div>
+
+    <div style="border-left:3px solid #60a830;background:#0a0806;padding:14px 16px;margin-bottom:4px;display:flex;align-items:center;gap:12px;">
+      <span style="font-size:12px;color:#908878;min-width:28px;">01</span>
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:13px;color:#e8dcd0;flex:1;">vs Drooling Cretins</span>
+      <span style="font-size:14px;font-weight:700;color:#80d040;">62-38</span>
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:700;color:#80d040;">W</span>
+    </div>
+    <div style="border-left:3px solid #c88838;background:#0a0806;padding:14px 16px;margin-bottom:4px;display:flex;align-items:center;gap:12px;opacity:0.7;">
+      <span style="font-size:12px;color:#908878;min-width:28px;">03</span>
+      <span style="font-family:'Chakra Petch',sans-serif;font-size:13px;color:#908878;flex:1;">Not started</span>
+    </div>
+  </div>
+</div>
+
+</div>
+</body>
+</html>
