@@ -2856,17 +2856,81 @@ export default function App() {
     return r;
   };
 
+  // Migrate old rating codes and faction names
+  const RATING_MIGRATION = { 'PS':'D', '?':'D', 'N':'D', 'R':'L', 'G':'W++', 'A+':'W+', 'A':'W', 'A-':'W-', 'A++':'W++' };
+  const FACTION_MIGRATION = { 'Sisters':'Sisters of Battle', 'Guard':'Imperial Guard', 'Nids':'Tyranids',
+    'EC':"Emperor's Children", 'CK':'Chaos Knights', 'IK':'Imperial Knights', 'WE':'World Eaters',
+    'DG':'Death Guard', 'TS':'Thousand Sons', 'BA':'Blood Angels', 'DA':'Dark Angels',
+    'Wolves':'Space Wolves', 'Black Temp':'Black Templars', 'Victrix spam':'Ultramarines' };
+
+  const migrateMatrix = (m) => {
+    if (!m) return m;
+    const migrated = {};
+    let changed = false;
+    for (const player of Object.keys(m)) {
+      migrated[player] = {};
+      for (const [faction, rating] of Object.entries(m[player] ?? {})) {
+        const newFaction = FACTION_MIGRATION[faction] ?? faction;
+        const newRating = RATING_MIGRATION[rating] ?? rating;
+        if (newFaction !== faction || newRating !== rating) changed = true;
+        migrated[player][newFaction] = newRating;
+      }
+    }
+    return changed ? migrated : m;
+  };
+
+  const migrateOpponents = (opps) => {
+    if (!opps) return opps;
+    let changed = false;
+    const migrated = opps.map(t => {
+      if (!t?.players) return t;
+      const newPlayers = t.players.map(p => {
+        const newFaction = FACTION_MIGRATION[p?.faction] ?? p?.faction;
+        if (newFaction !== p?.faction) { changed = true; return { ...p, faction: newFaction }; }
+        return p;
+      });
+      return { ...t, players: newPlayers };
+    });
+    return changed ? migrated : opps;
+  };
+
+  const migrateRoster = (r) => {
+    if (!r) return r;
+    let changed = false;
+    const migrated = r.map(p => {
+      const newFaction = FACTION_MIGRATION[p?.faction] ?? p?.faction;
+      if (newFaction !== p?.faction) { changed = true; return { ...p, faction: newFaction }; }
+      return p;
+    });
+    return changed ? migrated : r;
+  };
+
   const loadEvent = (evt, targetScreen) => {
-    setActiveEvent(evt);
-    setMatrixData(evt.matrix ?? DEFAULT_MATRIX); matrix = evt.matrix ?? DEFAULT_MATRIX;
-    setRoster(evt.roster ?? DEFAULT_RAGNAROK); RAGNAROK = evt.roster ?? DEFAULT_RAGNAROK;
-    setOurTeamName(evt.teamName ?? DEFAULT_TEAM_NAME); teamName = evt.teamName ?? DEFAULT_TEAM_NAME;
-    setTeams(evt.opponents ?? []);
-    setRoundsData(normalizeRounds(evt.rounds));
-    scoringTable = evt.scoringTable ?? DEFAULT_SCORING_TABLE;
+    // Run migrations
+    const mMatrix = migrateMatrix(evt.matrix);
+    const mOpponents = migrateOpponents(evt.opponents);
+    const mRoster = migrateRoster(evt.roster);
+    const needsSave = mMatrix !== evt.matrix || mOpponents !== evt.opponents || mRoster !== evt.roster;
+    const migrated = needsSave ? { ...evt, matrix: mMatrix ?? evt.matrix, opponents: mOpponents ?? evt.opponents, roster: mRoster ?? evt.roster } : evt;
+
+    setActiveEvent(migrated);
+    setMatrixData(migrated.matrix ?? DEFAULT_MATRIX); matrix = migrated.matrix ?? DEFAULT_MATRIX;
+    setRoster(migrated.roster ?? DEFAULT_RAGNAROK); RAGNAROK = migrated.roster ?? DEFAULT_RAGNAROK;
+    setOurTeamName(migrated.teamName ?? DEFAULT_TEAM_NAME); teamName = migrated.teamName ?? DEFAULT_TEAM_NAME;
+    setTeams(migrated.opponents ?? []);
+    setRoundsData(normalizeRounds(migrated.rounds));
+    scoringTable = migrated.scoringTable ?? DEFAULT_SCORING_TABLE;
     const scr = targetScreen || 'home';
     setScreenRaw(scr);
-    setHash(evt.id, scr);
+    setHash(migrated.id, scr);
+
+    // Save migrated data back to Firebase
+    if (needsSave && migrated.id) {
+      const base = `${FIREBASE_URL}/events/${migrated.id}`;
+      if (mMatrix !== evt.matrix) fetch(`${base}/matrix.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(mMatrix) }).catch(() => {});
+      if (mOpponents !== evt.opponents) fetch(`${base}/opponents.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(mOpponents) }).catch(() => {});
+      if (mRoster !== evt.roster) fetch(`${base}/roster.json`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(mRoster) }).catch(() => {});
+    }
   };
 
   const saveEvent = (evt) => {
