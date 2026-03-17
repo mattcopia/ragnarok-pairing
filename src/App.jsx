@@ -7,7 +7,7 @@ const DEFAULT_RAGNAROK = [
   { name: 'Matt',  faction: 'Custodes',  id: 1 },
   { name: 'Alex',  faction: 'Space Wolves', id: 2 },
   { name: 'Ollie', faction: 'Necrons',   id: 3 },
-  { name: 'Paul',  faction: 'Sisters',   id: 4 },
+  { name: 'Paul',  faction: 'Sisters of Battle',   id: 4 },
 ];
 
 let RAGNAROK = JSON.parse(JSON.stringify(DEFAULT_RAGNAROK));
@@ -18,18 +18,18 @@ const DEFAULT_FACTIONS = [
   'Ad Mech','Black Templars','Blood Angels','Chaos Knights','CSM','Custodes',
   'Daemons','Dark Angels','Death Guard','Deathwatch','Drukhari','Eldar',
   "Emperor's Children",'Gladius','Grey Knights','GSC','Imperial Guard',
-  'Imperial Knights','Necrons','Orks','Other Marines','Sisters',
+  'Imperial Knights','Necrons','Orks','Other Marines','Sisters of Battle',
   'Space Wolves','Tau','Thousand Sons','Tyranids','Ultramarines','Votan','World Eaters'
 ];
 
 let FACTIONS = [...DEFAULT_FACTIONS];
 
 const DEFAULT_MATRIX = {
-  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'D',CSM:'W',Tau:'W++',Orks:'D',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'D','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
-  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'D',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'D','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'D','Dark Angels':'L','Black Templars':'W+',Deathwatch:'D',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
-  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'D','Ad Mech':'D','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'D','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
-  Ollie: {Daemons:'D','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'D',Necrons:'D',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'D',Votan:'W',Sisters:'D',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'D','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'D',Ultramarines:'W++','Other Marines':'W'},
-  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'W',CSM:'D',Tau:'L',Orks:'W',Necrons:'D',GSC:'D',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'D','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'D','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'D',Gladius:'W',Ultramarines:'D','Other Marines':'W++'},
+  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'D',CSM:'W',Tau:'W++',Orks:'D',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W','Sisters of Battle':'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'D','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
+  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'D',Eldar:'W',Tyranids:'W++',Votan:'W++','Sisters of Battle':'L',Custodes:'D','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'D','Dark Angels':'L','Black Templars':'W+',Deathwatch:'D',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
+  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W','Sisters of Battle':'W',Custodes:'D','Ad Mech':'D','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'D','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
+  Ollie: {Daemons:'D','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'D',Necrons:'D',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'D',Votan:'W','Sisters of Battle':'D',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'D','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'D',Ultramarines:'W++','Other Marines':'W'},
+  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'W',CSM:'D',Tau:'L',Orks:'W',Necrons:'D',GSC:'D',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L','Sisters of Battle':'W',Custodes:'W++','Ad Mech':'D','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'D','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'D',Gladius:'W',Ultramarines:'D','Other Marines':'W++'},
 };
 
 const FIREBASE_URL = 'https://ragnarok-18886-default-rtdb.firebaseio.com';
@@ -2405,7 +2405,7 @@ const KENT_TEAMS = [
   { id:'kt-03', name:'Warhomies',                   players: mkp(['Chaos Knights','Imperial Knights','Thousand Sons','Tau','Necrons']) },
   { id:'kt-04', name:'Get Vekt',                    players: mkp(['CSM','Deathwatch','Imperial Guard','Imperial Knights','Tau']) },
   { id:'kt-05', name:'Gothic Games Canterbury',     players: mkp(['Imperial Guard','Imperial Knights','CSM','Necrons','Tyranids']) },
-  { id:'kt-06', name:'Kent Knight - Business',      players: mkp(['Deathwatch','Thousand Sons','Sisters','CSM','Necrons']) },
+  { id:'kt-06', name:'Kent Knight - Business',      players: mkp(['Deathwatch','Thousand Sons','Sisters of Battle','CSM','Necrons']) },
   { id:'kt-07', name:'Kent Knights - Shield',       players: mkp(['Daemons','Death Guard','World Eaters','Dark Angels','Eldar']) },
   { id:'kt-09', name:'Shed',                        players: mkp(['Imperial Guard','Ultramarines','CSM','Tau','Necrons']) },
   { id:'kt-10', name:'Shedhammer - Fun Comes First',players: mkp(['Imperial Guard','Daemons','World Eaters','Ad Mech','Tyranids']) },
