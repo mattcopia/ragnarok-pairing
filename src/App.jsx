@@ -157,7 +157,7 @@ const C = {
   redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
   redDark:'#1a0a08', redLight:'#e08080', amberDark:'#5a4010', amberMid:'#c08040',
   input:'#0c0a08',
-  redTint:C.redTint, goldTint:C.goldTint,
+  redTint:'rgba(168,48,48,0.06)', goldTint:'rgba(200,136,56,0.04)',
   purple:'#9070b0',
 };
 
@@ -744,43 +744,48 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
   const undated = events.filter(e => !e.dates?.start);
 
   const renderCard = (evt) => {
-    const roundsDone = Object.keys(evt.rounds ?? {}).filter(k => evt.rounds[k]?.complete).length;
+    if (!evt) return null;
+    let roundsDone = 0;
+    try {
+      const evtRounds = Array.isArray(evt.rounds) ? evt.rounds.filter(Boolean) : Object.values(evt.rounds ?? {}).filter(Boolean);
+      roundsDone = evtRounds.filter(r => r?.complete).length;
+    } catch(e) { /* ignore */ }
     const isConfirming = confirmDel === evt.id;
     return (
-      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, padding:'16px 18px', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', position:'relative' }}>
-        {/* Icons top-right */}
-        <div style={{ position:'absolute', top:10, right:10, display:'flex', gap:6 }}>
-          <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
-            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
-            width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = C.gold; e.currentTarget.style.borderColor = C.goldD; }}
-            onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
-            ⚙
-          </button>
-          <button onClick={e => { e.stopPropagation(); setConfirmDel(evt.id); }} style={{
-            background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
-            width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = C.redBord; }}
-            onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
-            🗑
-          </button>
-        </div>
-
-        <div {...clickable(() => onSelect(evt))} style={{ cursor:'pointer', paddingRight:70 }}
+      <div key={evt.id} style={{ borderLeft:`3px solid ${C.bord}`, background:C.surf, transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}>
+        <div {...clickable(() => onSelect(evt))} style={{ cursor:'pointer', padding:'16px 18px' }}
           onMouseEnter={e => e.currentTarget.parentElement.style.borderLeftColor = C.gold}
           onMouseLeave={e => e.currentTarget.parentElement.style.borderLeftColor = C.bord}>
-          <Cine size={14} weight={700} mb={4}>{evt.name}</Cine>
-          <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
-            {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
-          </div>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-            <Tag color={C.dim}>{(evt.opponents ?? []).length + 1} teams · {((evt.opponents ?? []).length + 1) * 5} players</Tag>
-            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim }}>
+          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:8 }}>
+            <Cine size={14} weight={700}>{evt.name}</Cine>
+            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:roundsDone > 0 ? C.gold : C.dim, whiteSpace:'nowrap', marginLeft:12 }}>
               {roundsDone}/{evt.numRounds ?? 5}
             </span>
           </div>
+          <div style={{ fontSize:12, color:C.dim, marginBottom:6 }}>
+            {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
+          </div>
+          <Tag color={C.dim}>{(evt.opponents ?? []).length + 1} teams · {((evt.opponents ?? []).length + 1) * 5} players</Tag>
+        </div>
+        <div style={{ display:'flex', borderTop:`1px solid ${C.bord}` }}>
+          <button onClick={e => { e.stopPropagation(); onSettings(evt); }} style={{
+            flex:1, background:'transparent', border:'none', borderRight:`1px solid ${C.bord}`,
+            color:C.dim, fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer',
+            padding:'10px', letterSpacing:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6
+          }}
+            onMouseEnter={e => e.currentTarget.style.color = C.gold}
+            onMouseLeave={e => e.currentTarget.style.color = C.dim}>
+            ⚙ Settings
+          </button>
+          <button onClick={e => { e.stopPropagation(); setConfirmDel(evt.id); }} style={{
+            flex:1, background:'transparent', border:'none',
+            color:C.dim, fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer',
+            padding:'10px', letterSpacing:1, display:'flex', alignItems:'center', justifyContent:'center', gap:6
+          }}
+            onMouseEnter={e => e.currentTarget.style.color = C.red}
+            onMouseLeave={e => e.currentTarget.style.color = C.dim}>
+            🗑 Delete
+          </button>
         </div>
 
         {isConfirming && (
@@ -2384,7 +2389,7 @@ export default function App() {
     fetch(`${FIREBASE_URL}/events.json`).then(r => r.json())
       .then(data => {
         if (data) {
-          const list = Object.values(data);
+          const list = Object.values(data).filter(Boolean).map(e => ({ ...e, rounds: normalizeRounds(e.rounds) }));
           setEvents(list);
           // Restore active event from URL hash
           if (pendingEventId) {
