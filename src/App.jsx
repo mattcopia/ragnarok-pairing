@@ -1692,9 +1692,9 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
         {/* Our defender picks */}
         <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.surf, padding:'16px 18px', marginBottom:16 }}>
-          <Tag color={C.blue} block mb={10}>Your Defender Picks Their Opponent</Tag>
+          <Tag color={C.blue} block mb={10}>{ourDefP.name}'s Pick</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{ourDefP.name}</span> — which attacker do you want to face?
+            Which of their attackers will {ourDefP.name} face?
           </div>
           {theirAtk.length === 1 ? (
             (() => { if (acceptedTheirAtk === null) setTimeout(() => setAcceptedTheirAtk(theirAtk[0]), 0); return null; })()
@@ -1730,10 +1730,9 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
         {/* Our attacker vs their defender */}
         <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'16px 18px', marginBottom:18 }}>
-          <Tag color={C.gold} block mb={10}>Pick Your Attacker</Tag>
+          <Tag color={C.gold} block mb={10}>Your Attacker vs Their Defender</Tag>
           <div style={{ fontSize:12, color:C.dim, marginBottom:12 }}>
-            Their defender: <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.name}</span>
-            <span style={{ color:C.dim, fontStyle:'italic' }}> ({theirDefP.faction})</span>
+            Who attacks their defender <span style={{ fontFamily:'Chakra Petch, sans-serif', color:C.white }}>{theirDefP.faction}</span>?
           </div>
           {ourAtk.length === 1 ? (
             (() => { if (chosenOurAtk === null) setTimeout(() => setChosenOurAtk(ourAtk[0]), 0); return null; })()
@@ -2071,6 +2070,9 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const [selectedSuggestions, setSelectedSuggestions] = useState({});
   const [undoData, setUndoData] = useState(null);
   const [undoTimer, setUndoTimer] = useState(null);
+  const [manualPairings, setManualPairings] = useState(
+    pairings.length > 0 ? null : Array.from({ length: 5 }, (_, i) => ({ usIdx: '', themIdx: '' }))
+  );
   const opponent = teams.find(t => t.id === opponentId);
   const pairings = round.pairings ?? [];
 
@@ -2102,7 +2104,8 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const saveScores = () => {
     const prevRounds = JSON.parse(JSON.stringify(rounds));
     const complete = scores.every(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10)));
-    const updated = { ...rounds, [roundNum]: { ...round, opponentId: round.opponentId || opponentId, scores, complete } };
+    const finalPairings = pairings.length > 0 ? pairings : (manualPairings ?? []).filter(p => p.usIdx !== '' && p.themIdx !== '').map((p, i) => ({ table: i + 1, usIdx: p.usIdx, themIdx: p.themIdx }));
+    const updated = { ...rounds, [roundNum]: { ...round, opponentId: round.opponentId || opponentId, scores, complete, pairings: finalPairings.length > 0 ? finalPairings : (round.pairings ?? []) } };
     onSave(updated);
     setUndoData(prevRounds);
     if (undoTimer) clearTimeout(undoTimer);
@@ -2224,7 +2227,25 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                             <span style={{ color:C.slate, fontWeight:600 }}>{themFaction}</span>
                           </span>
                         ) : (
-                          <span style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>Pairing not recorded</span>
+                          <div style={{ display:'flex', gap:6, flexWrap:'wrap', flex:1 }}>
+                            <select value={manualPairings?.[idx]?.usIdx ?? ''} onChange={e => {
+                              const mp = [...(manualPairings ?? Array.from({ length:5 }, () => ({ usIdx:'', themIdx:'' })))];
+                              mp[idx] = { ...mp[idx], usIdx: parseInt(e.target.value) };
+                              setManualPairings(mp);
+                            }} style={{ flex:1, background:C.input, border:`1px solid ${C.bord}`, color:C.text, padding:'8px', fontSize:12, outline:'none', minWidth:80 }}>
+                              <option value="">Our player</option>
+                              {RAGNAROK.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                            </select>
+                            <span style={{ color:C.dim, fontSize:12, alignSelf:'center' }}>vs</span>
+                            <select value={manualPairings?.[idx]?.themIdx ?? ''} onChange={e => {
+                              const mp = [...(manualPairings ?? Array.from({ length:5 }, () => ({ usIdx:'', themIdx:'' })))];
+                              mp[idx] = { ...mp[idx], themIdx: parseInt(e.target.value) };
+                              setManualPairings(mp);
+                            }} style={{ flex:1, background:C.input, border:`1px solid ${C.bord}`, color:C.text, padding:'8px', fontSize:12, outline:'none', minWidth:80 }}>
+                              <option value="">Their faction</option>
+                              {(opponent?.players ?? []).map((p, pi) => <option key={pi} value={pi}>{p?.faction}</option>)}
+                            </select>
+                          </div>
                         )}
                       </div>
                       {inputMode === 'vp' ? (
@@ -2975,7 +2996,10 @@ export default function App() {
       {activeEvent && screen === 'pairing' && <Pairing team={selectedTeam} onBack={()=>setScreen('matchup')} onComplete={(pairings) => {
         const roundNum = Object.keys(roundsData).find(k => roundsData[k]?.opponentId === selectedTeam?.id);
         if (roundNum) {
-          const mapped = pairings.map((p, i) => ({ table: i + 1, usIdx: p.us.id, themIdx: selectedTeam.players.indexOf(p.them) }));
+          const mapped = pairings.map((p, i) => {
+            const themIdx = (selectedTeam?.players ?? []).findIndex(pl => pl === p.them || pl?.faction === p.them?.faction);
+            return { table: i + 1, usIdx: p.us.id, themIdx: themIdx >= 0 ? themIdx : i };
+          });
           saveRounds({ ...roundsData, [roundNum]: { ...roundsData[roundNum], pairings: mapped } });
         }
       }} onScores={() => {
