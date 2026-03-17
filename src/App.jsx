@@ -25,15 +25,15 @@ const DEFAULT_FACTIONS = [
 let FACTIONS = [...DEFAULT_FACTIONS];
 
 const DEFAULT_MATRIX = {
-  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'?',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'PS','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
-  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'PS',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'PS','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'PS','Dark Angels':'L','Black Templars':'W+',Deathwatch:'?',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
-  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'PS','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'?',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'PS','Ad Mech':'?','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'PS','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
-  Ollie: {Daemons:'?','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'PS',Necrons:'PS',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'PS',Votan:'W',Sisters:'PS',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'PS','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'PS',Ultramarines:'W++','Other Marines':'W'},
-  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'?','Thousand Sons':'W',CSM:'PS',Tau:'L',Orks:'W',Necrons:'PS',GSC:'PS',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'?','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'PS','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'?',Gladius:'W',Ultramarines:'?','Other Marines':'W++'},
+  Jacob: {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'L',"Emperor's Children":'W-','Thousand Sons':'D',CSM:'W',Tau:'W++',Orks:'D',Necrons:'W+',GSC:'W++',Drukhari:'W',Eldar:'W++',Tyranids:'W',Votan:'W',Sisters:'W++',Custodes:'W','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'D','Grey Knights':'W++','Blood Angels':'W','Space Wolves':'W','Dark Angels':'W','Black Templars':'W',Deathwatch:'L',Gladius:'W-',Ultramarines:'L','Other Marines':'W'},
+  Matt:  {Daemons:'W','Chaos Knights':'W+','World Eaters':'W','Death Guard':'W++',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'L',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'D',Eldar:'W',Tyranids:'W++',Votan:'W++',Sisters:'L',Custodes:'D','Ad Mech':'L','Imperial Guard':'W-','Imperial Knights':'W++','Grey Knights':'W++','Blood Angels':'L','Space Wolves':'D','Dark Angels':'L','Black Templars':'W+',Deathwatch:'D',Gladius:'W',Ultramarines:'L','Other Marines':'W'},
+  Alex:  {Daemons:'W','Chaos Knights':'L','World Eaters':'D','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'D',CSM:'W',Tau:'W',Orks:'W',Necrons:'L',GSC:'W',Drukhari:'W++',Eldar:'W++',Tyranids:'W++',Votan:'W',Sisters:'W',Custodes:'D','Ad Mech':'D','Imperial Guard':'W-','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'W-','Space Wolves':'D','Dark Angels':'W','Black Templars':'W++',Deathwatch:'L',Gladius:'W',Ultramarines:'L','Other Marines':'W++'},
+  Ollie: {Daemons:'D','Chaos Knights':'W++','World Eaters':'L','Death Guard':'W++',"Emperor's Children":'W','Thousand Sons':'W++',CSM:'W',Tau:'W++',Orks:'D',Necrons:'D',GSC:'W++',Drukhari:'W',Eldar:'W',Tyranids:'D',Votan:'W',Sisters:'D',Custodes:'W++','Ad Mech':'W','Imperial Guard':'L','Imperial Knights':'W++','Grey Knights':'W','Blood Angels':'L','Space Wolves':'D','Dark Angels':'W++','Black Templars':'W',Deathwatch:'L',Gladius:'D',Ultramarines:'W++','Other Marines':'W'},
+  Paul:  {Daemons:'W','Chaos Knights':'L','World Eaters':'W++','Death Guard':'W',"Emperor's Children":'D','Thousand Sons':'W',CSM:'D',Tau:'L',Orks:'W',Necrons:'D',GSC:'D',Drukhari:'W++',Eldar:'W',Tyranids:'W++',Votan:'L',Sisters:'W',Custodes:'W++','Ad Mech':'D','Imperial Guard':'W','Imperial Knights':'L','Grey Knights':'W++','Blood Angels':'D','Space Wolves':'W++','Dark Angels':'W','Black Templars':'W++',Deathwatch:'D',Gladius:'W',Ultramarines:'D','Other Marines':'W++'},
 };
 
 const FIREBASE_URL = 'https://ragnarok-18886-default-rtdb.firebaseio.com';
-const RATINGS = ['W++','W+','W','W-','PS','?','L-','L','L+'];
+const RATINGS = ['W++','W+','W','W-','D','L-','L','L+','L++'];
 
 let matrix = JSON.parse(JSON.stringify(DEFAULT_MATRIX));
 
@@ -42,20 +42,20 @@ const DEFAULT_DEFS = {
   'W+': { label:'Comfortable Win', score:3.5, desc:'31-45 VP diff — 16-18 game pts' },
   'W':  { label:'Slight Edge',     score:3.0, desc:'11-30 VP diff — 12-15 game pts' },
   'W-': { label:'Narrow Edge',     score:2.5, desc:'6-10 VP diff — 11-9 game pts' },
-  'PS': { label:'Player Skill',    score:2.0, desc:'~0 VP diff — depends on execution' },
-  '?':  { label:'Unknown',         score:2.0, desc:'No data — assume 10-10 draw' },
+  'D':  { label:'Draw',            score:2.0, desc:'~0 VP diff — 10-10 game pts' },
   'L-': { label:'Narrow Loss',     score:1.5, desc:'6-10 VP diff against — 9-11 game pts' },
-  'L':  { label:'Mild Loss',       score:1.0, desc:'11-30 VP diff against — 5-8 game pts' },
-  'L+': { label:'Heavy Loss',      score:0.0, desc:'31+ VP diff against — 0-4 game pts' },
+  'L':  { label:'Moderate Loss',   score:1.0, desc:'11-30 VP diff against — 5-8 game pts' },
+  'L+': { label:'Bad Loss',        score:0.5, desc:'31-45 VP diff against — 2-4 game pts' },
+  'L++':{ label:'Heavy Loss',      score:0.0, desc:'46+ VP diff against — 0-1 game pts' },
 };
 
 let defs = JSON.parse(JSON.stringify(DEFAULT_DEFS));
 
-const BG_COL = { 'W++':'#0d2a10', 'W+':'#0d2a10', W:'#081420', 'W-':'#1a1408', PS:'#140e1c', '?':'#141210', 'L-':'#1a1008', L:'#1a0808', 'L+':'#200808' };
-const FG_COL = { 'W++':'#60c030', 'W+':'#50b030', W:'#5090d0', 'W-':'#b09030', PS:'#9070b0', '?':'#807868', 'L-':'#c08040', L:'#e04848', 'L+':'#f04040' };
-const BD_COL = { 'W++':'#40a020', 'W+':'#308018', W:'#305880', 'W-':'#806020', PS:'#604080', '?':'#4a4438', 'L-':'#805020', L:'#802020', 'L+':'#a01818' };
+const BG_COL = { 'W++':'#0d2a10', 'W+':'#0d2a10', W:'#081420', 'W-':'#1a1408', D:'#141210', 'L-':'#1a1008', L:'#1a0808', 'L+':'#200808', 'L++':'#280404' };
+const FG_COL = { 'W++':'#60c030', 'W+':'#50b030', W:'#5090d0', 'W-':'#b09030', D:'#908878', 'L-':'#c08040', L:'#e04848', 'L+':'#f04040', 'L++':'#ff3030' };
+const BD_COL = { 'W++':'#40a020', 'W+':'#308018', W:'#305880', 'W-':'#806020', D:'#4a4438', 'L-':'#805020', L:'#802020', 'L+':'#a01818', 'L++':'#c01010' };
 
-const gr  = (p, f)  => matrix[p]?.[f] ?? '?';
+const gr  = (p, f)  => matrix[p]?.[f] ?? 'D';
 const gs  = (p, f)  => (defs[gr(p,f)]?.score) ?? 2;
 const avg = (p, fs) => fs.length ? fs.reduce((s,f)=>s+gs(p,f),0)/fs.length : 0;
 
@@ -138,10 +138,11 @@ function gpToSuggestedRating(ourGP) {
   if (ourGP >= 16) return 'W+';
   if (ourGP >= 12) return 'W';
   if (ourGP >= 11) return 'W-';
-  if (ourGP >= 10) return 'PS';
+  if (ourGP >= 10) return 'D';
   if (ourGP >= 9)  return 'L-';
   if (ourGP >= 5)  return 'L';
-  return 'L+';
+  if (ourGP >= 2)  return 'L+';
+  return 'L++';
 }
 
 // ─── THEME ────────────────────────────────────────────────────────────────────
@@ -156,6 +157,7 @@ const C = {
   redBord:'#a83030', greenBord:'#60a830', blueBg:'#081420',
   redDark:'#1a0a08', redLight:'#e08080', amberDark:'#5a4010', amberMid:'#c08040',
   input:'#0c0a08',
+  redTint:C.redTint, goldTint:C.goldTint,
   purple:'#9070b0',
 };
 
@@ -196,7 +198,7 @@ const CSS = `
   .def-row-badges { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
 
   @media (max-width: 640px) {
-    .pair-layout { flex-direction: column-reverse; }
+    .pair-layout { flex-direction: column; }
     .pair-sidebar { width: 100%; flex-direction: row; gap: 12px; }
     .pair-sidebar > div { flex: 1; }
     .pair-sidebar .pool-list { display: flex; flex-direction: row; flex-wrap: wrap; gap: 4px; }
@@ -231,10 +233,10 @@ const clickable = (onClick) => ({
 
 function Badge({ r }) {
   return (
-    <span style={{ display:'inline-block', padding:'4px 10px', background:BG_COL[r]??'#141210',
+    <span style={{ display:'inline-block', padding:'4px 10px', background:BG_COL[r]??C.surf,
       color:FG_COL[r]??C.dim, fontSize:12, fontWeight:700, fontFamily:'Source Code Pro, monospace',
-      minWidth:36, textAlign:'center', letterSpacing:0.5, borderLeft:`2px solid ${BD_COL[r]??'#4a4438'}` }}>
-      {r ?? '?'}
+      minWidth:36, textAlign:'center', letterSpacing:0.5, borderLeft:`3px solid ${BD_COL[r]??C.bord}` }}>
+      {r ?? 'D'}
     </span>
   );
 }
@@ -252,7 +254,7 @@ function Tag({ children, color = C.goldD, block, mb = 0, center }) {
 }
 
 function Cine({ children, size = 14, color = C.white, weight = 600, mb = 0, as: Tag2 = 'div' }) {
-  return <Tag2 style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word', margin:0 }}>{children}</Tag2>;
+  return <Tag2 style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:size, fontWeight:weight, color, margin:0, marginBottom:mb, overflowWrap:'break-word', wordBreak:'break-word' }}>{children}</Tag2>;
 }
 
 function Btn({ children, onClick, disabled, gold, ghost, sm, full, style: s = {} }) {
@@ -314,6 +316,7 @@ function Ratings({ matrixData, onSave, onBack }) {
   const [selected, setSelected] = useState(RAGNAROK[0]?.name ?? '');
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState(null);
+  const [showKey, setShowKey] = useState(false);
   const playerRatings = matrixData[selected] ?? {};
 
   const cycle = (faction) => {
@@ -357,8 +360,29 @@ function Ratings({ matrixData, onSave, onBack }) {
       <Tag block mb={10}>Player Rankings</Tag>
       <Cine as="h1" size={24} weight={900} mb={6}>Edit Rankings</Cine>
       <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginBottom:24 }}>
-        Tap a rating to cycle: W++ → W+ → W → W- → PS → ? → L- → L → L+
+        Tap a rating to cycle through rankings. Use the key below for reference.
       </p>
+      <Btn ghost sm onClick={() => setShowKey(!showKey)} style={{ marginBottom:16 }}>{showKey ? 'Hide Ranking Key' : 'See Ranking Key'}</Btn>
+      <div style={{ display:'grid', gridTemplateRows:showKey ? '1fr' : '0fr', transition:'grid-template-rows 0.3s cubic-bezier(0.25,1,0.5,1)', marginBottom:showKey ? 20 : 0 }}>
+        <div style={{ overflow:'hidden' }}>
+          <div style={{ borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'14px 16px' }}>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {RATINGS.map(r => (
+                <div key={r} style={{ display:'flex', alignItems:'center', gap:12, padding:'6px 0', borderBottom:`1px solid ${C.bord}` }}>
+                  <Badge r={r} />
+                  <div style={{ flex:1 }}>
+                    <div style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.white }}>{defs[r]?.label ?? r}</div>
+                    <div style={{ fontSize:12, color:C.dim }}>Score: {defs[r]?.score ?? '—'}</div>
+                  </div>
+                  <div style={{ fontSize:12, color:C.dim, textAlign:'right', lineHeight:1.5 }}>
+                    {(defs[r]?.desc ?? '').split('—').map((part, i) => <div key={i}>{part.trim()}</div>)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Player tabs */}
       <div style={{ display:'flex', gap:6, marginBottom:24, flexWrap:'wrap' }}>
@@ -373,7 +397,7 @@ function Ratings({ matrixData, onSave, onBack }) {
               position:'relative'
             }}>
               {r.name}
-              {mod && <span style={{ position:'absolute', top:3, right:3, width:6, height:6, borderRadius:3, background:C.gold }} />}
+              {mod && sel && <span style={{ position:'absolute', top:3, right:3, width:6, height:6, borderRadius:3, background:C.gold }} />}
             </button>
           );
         })}
@@ -382,8 +406,8 @@ function Ratings({ matrixData, onSave, onBack }) {
       {/* Faction list */}
       <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:24 }}>
         {[...FACTIONS].sort((a,b)=>a.localeCompare(b)).map(f => {
-          const r = playerRatings[f] ?? '?';
-          const def = DEFAULT_MATRIX[selected]?.[f] ?? '?';
+          const r = playerRatings[f] ?? 'D';
+          const def = DEFAULT_MATRIX[selected]?.[f] ?? 'D';
           const isChanged = r !== def;
           return (
             <div key={f} {...clickable(() => cycle(f))} style={{
@@ -738,7 +762,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
             background:'transparent', border:`1px solid ${C.bord}`, color:C.dim, fontSize:20, cursor:'pointer',
             width:44, height:44, display:'flex', alignItems:'center', justifyContent:'center'
           }}
-            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = '#3a1818'; }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.red; e.currentTarget.style.borderColor = C.redBord; }}
             onMouseLeave={e => { e.currentTarget.style.color = C.dim; e.currentTarget.style.borderColor = C.bord; }}>
             🗑
           </button>
@@ -747,7 +771,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
         <div {...clickable(() => onSelect(evt))} style={{ cursor:'pointer', paddingRight:70 }}
           onMouseEnter={e => e.currentTarget.parentElement.style.borderLeftColor = C.gold}
           onMouseLeave={e => e.currentTarget.parentElement.style.borderLeftColor = C.bord}>
-          <Cine size={15} weight={700} mb={4}>{evt.name}</Cine>
+          <Cine size={14} weight={700} mb={4}>{evt.name}</Cine>
           <div style={{ fontSize:12, color:C.dim, marginBottom:8 }}>
             {evt.dates?.start ?? 'TBC'}{evt.dates?.end && evt.dates.end !== evt.dates.start ? ` — ${evt.dates.end}` : ''}
           </div>
@@ -760,7 +784,7 @@ function EventList({ events, onSelect, onAdd, onDelete, onSettings }) {
         </div>
 
         {isConfirming && (
-          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:'rgba(168,48,48,0.06)' }}>
+          <div style={{ border:`1px solid ${C.red}`, padding:'12px', marginTop:10, background:C.redTint }}>
             <p style={{ fontSize:13, color:C.dim, marginBottom:12 }}>Delete {evt.name}? This cannot be undone.</p>
             <div style={{ display:'flex', gap:10 }}>
               <Btn full onClick={() => { onDelete(evt.id); setConfirmDel(null); }} style={{ background:C.redDark, color:C.red, borderColor:C.red }}>
@@ -867,7 +891,6 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
   return (
     <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>{event ? 'Edit Event' : 'New Event'}</Tag>
       <Cine as="h1" size={24} weight={900} mb={28}>{event ? 'Edit Event' : 'Create Event'}</Cine>
 
       <Tag block mb={8}>Event Name</Tag>
@@ -963,8 +986,8 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           const numR = event?.numRounds ?? 5;
           const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
           return nextRound
-            ? <Cine as="h1" size={22} weight={900} mb={12}>Round {nextRound}</Cine>
-            : <Cine as="h1" size={22} weight={900} mb={12}>Event Complete</Cine>;
+            ? <Cine as="h1" size={24} weight={900} mb={12}>Round {nextRound}</Cine>
+            : <Cine as="h1" size={24} weight={900} mb={12}>Event Complete</Cine>;
         })()}
         {completedRounds.length === 0 && (
           <p style={{ color:C.dim, fontSize:15, fontStyle:'italic' }}>
@@ -977,7 +1000,7 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
 
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(min(210px, 100%), 1fr))', gap:12, marginTop:12 }}>
         {sorted.map(t => {
-          const facs = (t.players ?? []).map(p => p?.faction ?? '?');
+          const facs = (t.players ?? []).map(p => p?.faction ?? 'D');
           const played = playedIds.has(t.id);
           const handleSelect = () => {
             if (played) setConfirmPlayed(t);
@@ -1116,10 +1139,9 @@ function Setup({ team, onSave, onDelete, onBack }) {
   return (
     <div className="page-enter" style={{ maxWidth:560, margin:'0 auto', padding:'36px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={10}>{team ? 'Edit Opponent' : 'New Opponent'}</Tag>
-      <Cine as="h1" size={24} weight={900} mb={28}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
+      <Cine as="h1" size={24} weight={900} mb={32}>{team ? 'Edit Opponent' : 'Add Opponent'}</Cine>
 
-      <Tag block mb={8}>Team Name</Tag>
+      <Tag block mb={10}>Team Name</Tag>
       <input value={name} onChange={e => setName(e.target.value)} placeholder="Opponent team name"
         style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white,
           padding:'10px 14px', fontSize:16, fontFamily:'Chakra Petch, sans-serif', fontWeight:600,
@@ -1148,7 +1170,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
               Remove Team
             </Btn>
           ) : (
-            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:'rgba(168,48,48,0.06)' }}>
+            <div style={{ border:`1px solid ${C.red}`, padding:'16px', background:C.redTint }}>
               <Cine size={14} weight={700} color={C.red} mb={8}>Remove {team.name}?</Cine>
               <p style={{ fontSize:13, color:C.dim, marginBottom:16 }}>
                 This will permanently remove this opponent team. Any round data linked to them will remain but won't show the team name.
@@ -1170,7 +1192,7 @@ function Setup({ team, onSave, onDelete, onBack }) {
 // ─── MATCHUP VIEW ─────────────────────────────────────────────────────────────
 
 function Matchup({ team, onStart, onBack }) {
-  const theirFacs = (team?.players ?? []).map(p => p?.faction ?? '?');
+  const theirFacs = (team?.players ?? []).map(p => p?.faction ?? 'D');
 
   return (
     <div className="page-enter" style={{ maxWidth:960, margin:'0 auto', padding:'32px 18px' }}>
@@ -1178,7 +1200,7 @@ function Matchup({ team, onStart, onBack }) {
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-end', marginBottom:24, flexWrap:'wrap', gap:12 }}>
         <div>
           <Tag color={C.dim} block mb={6}>Round Opponent</Tag>
-          <Cine as="h1" size={28} weight={900}>{team.name}</Cine>
+          <Cine as="h1" size={24} weight={900}>{team.name}</Cine>
         </div>
         <Btn gold onClick={onStart}>Begin Pairing →</Btn>
       </div>
@@ -1392,19 +1414,22 @@ function Pairing({ team, onBack, onComplete, onScores }) {
                   <div style={{ flex:1 }}>
                     <Cine size={12} color={sel ? C.gold : C.white}>{r.name}</Cine>
                     <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{r.faction}</div>
+                    <div style={{ fontSize:12, marginTop:4 }}>
+                      <span style={{ color:C.dim }}>Avg </span>
+                      <span style={{ fontFamily:'Source Code Pro, monospace', fontWeight:700, color:ScoreColor(a) }}>{a.toFixed(1)}</span>
+                    </div>
                   </div>
                   <div className="def-row-badges">
                     {theirRemFacs.map((f, fi) => <Badge key={fi} r={gr(r.name, f)} />)}
                   </div>
-                  <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:13, fontWeight:700, color:ScoreColor(a), minWidth:24, textAlign:'right' }}>{a.toFixed(1)}</span>
                 </div>
-                <div onClick={e => { e.stopPropagation(); setExpanded(exp ? null : i); }} style={{
+                <div {...clickable(e => { e.stopPropagation(); setExpanded(exp ? null : i); })} style={{
                   padding:'0 14px 4px', cursor:'pointer', display:'flex', justifyContent:'flex-end'
                 }}>
                   <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.dim, letterSpacing:1 }}>{exp ? '▲ Hide' : '▼ Details'}</span>
                 </div>
                 {exp && (
-                  <div style={{ padding:'6px 14px 12px', borderTop:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:4 }}>
+                  <div style={{ padding:'10px 14px 14px', borderTop:`1px solid ${C.bord}`, borderBottom:`1px solid ${C.bord}`, display:'flex', flexDirection:'column', gap:6, marginBottom:4 }}>
                     {theirRemFacs.map((f, fi) => (
                       <div key={fi} style={{ display:'flex', alignItems:'center', gap:10 }}>
                         <Badge r={gr(r.name, f)} />
@@ -1437,7 +1462,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
           <Cine size={13}>{RAGNAROK[ourDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{RAGNAROK[ourDef].faction}</div>
         </div>
-        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.gold}`, background:'rgba(200,136,56,0.04)', marginBottom:14 }}>
+        <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.gold}`, background:C.goldTint, marginBottom:14 }}>
           <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, color:C.gold }}>Your input needed — select their revealed defender</span>
         </div>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
@@ -1681,7 +1706,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
       return (
         <>
           <Tag center block mb={18} style={{ fontSize:12, letterSpacing:5 }}>◆ All Pairings Complete ◆</Tag>
-          <Cine as="h1" size={22} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
+          <Cine as="h1" size={24} weight={900} mb={28} color={C.gold}>Final Draw</Cine>
           <div style={{ display:'flex', flexDirection:'column', gap:8, marginBottom:32 }}>
             {pairings.map((p, i) => (
               <div key={i} style={{ display:'flex', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf }}>
@@ -2009,9 +2034,8 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   return (
     <div className="page-enter" style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
       <Back onClick={onBack} />
-      <Tag block mb={8}>Round {roundNum}</Tag>
-      <Cine as="h1" size={22} weight={900} mb={8}>
-        {opponent ? `vs ${opponent.name}` : `Round ${roundNum}`}
+      <Cine as="h1" size={24} weight={900} mb={8}>
+        {opponent ? `Round ${roundNum} — vs ${opponent.name}` : `Round ${roundNum}`}
       </Cine>
 
       {!round.opponentId && (
@@ -2185,9 +2209,9 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
               if (!player || !faction) return;
               const ourGP = parseInt(sc.ourGP);
               if (isNaN(ourGP)) return;
-              const currentRating = matrixData[player.name]?.[faction] ?? '?';
+              const currentRating = matrixData[player.name]?.[faction] ?? 'D';
               const suggested = gpToSuggestedRating(ourGP);
-              if (currentRating !== '?' && suggested !== currentRating) {
+              if (suggested !== currentRating) {
                 const rIdx = RATINGS.indexOf(currentRating);
                 const sIdx = RATINGS.indexOf(suggested);
                 suggestions.push({ player: player.name, faction, current: currentRating, suggested, isUpgrade: sIdx < rIdx, key: `${player.name}-${faction}` });
