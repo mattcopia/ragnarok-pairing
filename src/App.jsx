@@ -958,7 +958,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
 
-function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
+function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack, onImport }) {
   const [confirmPlayed, setConfirmPlayed] = useState(null);
   const [copied, setCopied] = useState(false);
   const playedIds = new Set(Object.values(rounds).filter(r => r?.opponentId).map(r => r.opponentId));
@@ -1073,6 +1073,16 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
           <div style={{ fontSize:22, color:C.dim }}>+</div>
           <Tag color={C.dim}>Add Opponent</Tag>
         </div>
+        {onImport && (
+          <div {...clickable(onImport)} style={{ border:`1px dashed ${C.bord}`, padding:'14px 16px', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:8, minHeight:80,
+            transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = C.goldD}
+            onMouseLeave={e => e.currentTarget.style.borderColor = C.bord}>
+            <div style={{ fontSize:18, color:C.dim }}>↑</div>
+            <Tag color={C.dim}>Import Opponents</Tag>
+          </div>
+        )}
       </div>
 
       {/* Already played warning */}
@@ -2395,6 +2405,312 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   );
 }
 
+// ─── IMPORT OPPONENTS ─────────────────────────────────────────────────────────
+
+const FACTION_ALIASES = {
+  'T\'au Empire':'Tau','Tau Empire':'Tau',
+  'Adeptus Custodes':'Custodes',
+  'Aeldari':'Eldar',
+  'Adepta Sororitas':'Sisters of Battle',
+  'Astra Militarum':'Imperial Guard',
+  'Chaos Daemons':'Daemons',
+  'Chaos Space Marines':'CSM',
+  'Leagues of Votann':'Votan',
+  'Adeptus Mechanicus':'Ad Mech',
+  'Space Marines (Astartes)':'_MARINE_',
+  'Drukhari':'Drukhari',
+  'Grey Knights':'Grey Knights',
+  'Death Guard':'Death Guard',
+  'World Eaters':'World Eaters',
+  'Thousand Sons':'Thousand Sons',
+  'Necrons':'Necrons',
+  'Orks':'Orks',
+  'Tyranids':'Tyranids',
+  'Imperial Knights':'Imperial Knights',
+  'Chaos Knights':'Chaos Knights',
+  'Dark Angels':'Dark Angels',
+  'Blood Angels':'Blood Angels',
+  'Space Wolves':'Space Wolves',
+  'Black Templars':'Black Templars',
+  'Deathwatch':'Deathwatch',
+  "Emperor's Children":"Emperor's Children",
+};
+
+function mapFaction(raw) {
+  const trimmed = (raw ?? '').trim();
+  if (!trimmed) return { mapped: '', status: 'missing' };
+  // Exact match to our factions
+  if (FACTIONS.includes(trimmed)) return { mapped: trimmed, status: 'exact' };
+  // Known alias
+  const alias = FACTION_ALIASES[trimmed];
+  if (alias === '_MARINE_') return { mapped: '', status: 'marine', original: trimmed };
+  if (alias && FACTIONS.includes(alias)) return { mapped: alias, status: 'alias', original: trimmed };
+  // Case-insensitive match
+  const lower = trimmed.toLowerCase();
+  const ci = FACTIONS.find(f => f.toLowerCase() === lower);
+  if (ci) return { mapped: ci, status: 'exact' };
+  // Fuzzy — check if any faction contains or is contained by the input
+  const partial = FACTIONS.find(f => f.toLowerCase().includes(lower) || lower.includes(f.toLowerCase()));
+  if (partial) return { mapped: partial, status: 'alias', original: trimmed };
+  return { mapped: '', status: 'unknown', original: trimmed };
+}
+
+function parseBCPText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const teams = [];
+  let current = null;
+  let expectFaction = false;
+
+  for (const line of lines) {
+    if (line === 'CHECKED IN' || line === 'NOT CHECKED IN') { expectFaction = false; continue; }
+    if (line.startsWith('Team Captain:')) continue;
+
+    if (!current) {
+      // First unrecognised line is a team name
+      current = { name: line, factions: [] };
+      teams.push(current);
+      expectFaction = false;
+      continue;
+    }
+
+    if (expectFaction) {
+      // This line is a faction
+      current.factions.push(line);
+      expectFaction = false;
+      if (current.factions.length >= 5) { current = null; }
+      continue;
+    }
+
+    // Could be a player name (next line is faction) or a new team name
+    // If current team already has 5 factions, this is a new team
+    if (current.factions.length >= 5) {
+      current = { name: line, factions: [] };
+      teams.push(current);
+      expectFaction = false;
+      continue;
+    }
+
+    // Player name line — next line should be faction
+    expectFaction = true;
+  }
+
+  return teams;
+}
+
+function parseCSVText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const teams = [];
+  for (const line of lines) {
+    const parts = line.split(',').map(s => s.trim());
+    if (parts.length < 2) continue;
+    // Skip header row
+    if (parts[0].toLowerCase() === 'team name') continue;
+    teams.push({ name: parts[0], factions: parts.slice(1, 6) });
+  }
+  return teams;
+}
+
+const MARINE_OPTIONS = ['Ultramarines','Gladius','Blood Angels','Dark Angels','Space Wolves','Black Templars','Deathwatch','Other Marines'];
+
+function ImportOpponents({ existingTeams, onImport, onBack }) {
+  const [mode, setMode] = useState('paste');
+  const [inputText, setInputText] = useState('');
+  const [parsed, setParsed] = useState(null);
+  const [mappings, setMappings] = useState({});
+  const [excluded, setExcluded] = useState({});
+
+  const handleParse = () => {
+    const raw = mode === 'paste' ? parseBCPText(inputText) : parseCSVText(inputText);
+    const mapped = raw.map((t, ti) => ({
+      ...t,
+      id: `imp-${ti}`,
+      factionMaps: t.factions.map(f => mapFaction(f)),
+    }));
+    setParsed(mapped);
+    // Init mappings for flagged factions
+    const m = {};
+    mapped.forEach((t, ti) => {
+      t.factionMaps.forEach((fm, fi) => {
+        if (fm.status === 'marine' || fm.status === 'unknown' || fm.status === 'missing') {
+          m[`${ti}-${fi}`] = fm.mapped;
+        }
+      });
+    });
+    setMappings(m);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => { setInputText(ev.target.result); setMode('csv'); };
+    reader.readAsText(file);
+  };
+
+  const downloadTemplate = () => {
+    const header = 'Team Name,Player 1 Faction,Player 2 Faction,Player 3 Faction,Player 4 Faction,Player 5 Faction';
+    const example = 'Example Team,Custodes,Necrons,Eldar,Tau,Space Wolves';
+    const factionList = '# Valid factions: ' + [...FACTIONS].sort().join(', ');
+    const csv = [header, example, '', factionList].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'opponent_template.csv'; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getFinalFaction = (ti, fi) => {
+    const key = `${ti}-${fi}`;
+    if (mappings[key] !== undefined) return mappings[key];
+    return parsed[ti].factionMaps[fi].mapped;
+  };
+
+  const allResolved = parsed && parsed.every((t, ti) =>
+    excluded[ti] || t.factionMaps.every((fm, fi) => {
+      const final = getFinalFaction(ti, fi);
+      return final && FACTIONS.includes(final);
+    })
+  );
+
+  const handleImport = () => {
+    const teams = parsed.filter((_, ti) => !excluded[ti]).map((t, ti) => ({
+      id: `imp-${Date.now()}-${ti}`,
+      name: t.name,
+      players: t.factionMaps.map((_, fi) => ({ faction: getFinalFaction(ti, fi) })),
+    }));
+    onImport(teams);
+  };
+
+  const existingNames = new Set((existingTeams ?? []).map(t => (t.name ?? '').toLowerCase()));
+
+  // Step 1: Input
+  if (!parsed) {
+    return (
+      <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+        <Back onClick={onBack} />
+        <Cine as="h1" size={24} weight={900} mb={24}>Import Opponents</Cine>
+
+        <div style={{ display:'flex', gap:8, marginBottom:20 }}>
+          <Btn sm gold={mode === 'paste'} ghost={mode !== 'paste'} onClick={() => setMode('paste')}>Paste from BCP</Btn>
+          <Btn sm gold={mode === 'csv'} ghost={mode !== 'csv'} onClick={() => setMode('csv')}>CSV File</Btn>
+        </div>
+
+        {mode === 'paste' && (
+          <>
+            <p style={{ color:C.dim, fontSize:13, marginBottom:12 }}>
+              Copy the full roster from Best Coast Pairings and paste it below. The parser will extract team names and factions automatically.
+            </p>
+            <textarea value={inputText} onChange={e => setInputText(e.target.value)}
+              placeholder="Paste BCP roster text here..."
+              style={{ width:'100%', minHeight:200, background:C.input, border:`1px solid ${C.bord}`, color:C.text,
+                padding:'12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', resize:'vertical' }} />
+          </>
+        )}
+
+        {mode === 'csv' && (
+          <>
+            <p style={{ color:C.dim, fontSize:13, marginBottom:12 }}>
+              Upload a CSV file or paste CSV text below. One team per row: team name followed by 5 factions.
+            </p>
+            <div style={{ display:'flex', gap:10, marginBottom:12 }}>
+              <label style={{
+                borderLeft:`3px solid ${C.gold}`, background:C.surf, padding:'12px 16px', cursor:'pointer',
+                fontFamily:'Chakra Petch, sans-serif', fontSize:12, color:C.gold, letterSpacing:1, flex:1, textAlign:'center'
+              }}>
+                Choose CSV File
+                <input type="file" accept=".csv,.txt" onChange={handleFileUpload} style={{ display:'none' }} />
+              </label>
+              <Btn ghost sm onClick={downloadTemplate}>Download Template</Btn>
+            </div>
+            <textarea value={inputText} onChange={e => setInputText(e.target.value)}
+              placeholder="Or paste CSV text here..."
+              style={{ width:'100%', minHeight:150, background:C.input, border:`1px solid ${C.bord}`, color:C.text,
+                padding:'12px', fontSize:14, fontFamily:'Source Code Pro, monospace', outline:'none', resize:'vertical' }} />
+          </>
+        )}
+
+        <Btn gold full disabled={!inputText.trim()} onClick={handleParse} style={{ marginTop:16 }}>
+          Parse Roster →
+        </Btn>
+      </div>
+    );
+  }
+
+  // Step 2: Review
+  return (
+    <div className="page-enter" style={{ maxWidth:600, margin:'0 auto', padding:'36px 20px' }}>
+      <Back onClick={() => setParsed(null)} />
+      <Cine as="h1" size={24} weight={900} mb={8}>Review Import</Cine>
+      <p style={{ color:C.dim, fontSize:13, marginBottom:20 }}>
+        {parsed.length} team{parsed.length !== 1 ? 's' : ''} found. Resolve any flagged factions before importing.
+      </p>
+
+      <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:24 }}>
+        {parsed.map((t, ti) => {
+          const isDupe = existingNames.has(t.name.toLowerCase());
+          const isExcluded = excluded[ti];
+          return (
+            <div key={ti} style={{ borderLeft:`3px solid ${isExcluded ? C.bord : isDupe ? C.gold : C.greenBord}`, background:C.surf,
+              padding:'14px 16px', opacity:isExcluded ? 0.4 : 1 }}>
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+                <Cine size={14} weight={700}>{t.name}</Cine>
+                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                  {isDupe && <span style={{ fontSize:12, color:C.gold }}>Exists</span>}
+                  <button onClick={() => setExcluded(prev => ({ ...prev, [ti]: !prev[ti] }))} style={{
+                    background:'transparent', border:`1px solid ${C.bord}`, color:isExcluded ? C.green : C.dim,
+                    padding:'6px 12px', fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer'
+                  }}>{isExcluded ? 'Include' : 'Skip'}</button>
+                </div>
+              </div>
+              {!isExcluded && (
+                <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                  {t.factionMaps.map((fm, fi) => {
+                    const key = `${ti}-${fi}`;
+                    const needsInput = fm.status === 'marine' || fm.status === 'unknown' || fm.status === 'missing';
+                    const final = getFinalFaction(ti, fi);
+                    const isValid = final && FACTIONS.includes(final);
+                    return (
+                      <div key={fi} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                        <span style={{ fontSize:12, color:C.dim, minWidth:14 }}>{fi + 1}</span>
+                        {needsInput ? (
+                          <div style={{ flex:1 }}>
+                            {fm.original && <span style={{ fontSize:12, color:C.red, display:'block', marginBottom:4 }}>
+                              {fm.status === 'marine' ? 'Space Marine — select chapter:' : `"${fm.original}" — select:`}
+                            </span>}
+                            {fm.status === 'missing' && <span style={{ fontSize:12, color:C.red, display:'block', marginBottom:4 }}>No faction — select:</span>}
+                            <select value={mappings[key] ?? ''} onChange={e => setMappings(prev => ({ ...prev, [key]: e.target.value }))}
+                              style={{ width:'100%', background:C.input, border:`1px solid ${isValid ? C.greenBord : C.redBord}`,
+                                color:isValid ? C.text : C.dim, padding:'10px 12px', fontSize:13, outline:'none' }}>
+                              <option value="">— Select —</option>
+                              {(fm.status === 'marine' ? MARINE_OPTIONS : [...FACTIONS].sort((a,b) => a.localeCompare(b))).map(f =>
+                                <option key={f} value={f}>{f}</option>
+                              )}
+                            </select>
+                          </div>
+                        ) : (
+                          <div style={{ flex:1, display:'flex', alignItems:'center', gap:8 }}>
+                            <span style={{ fontSize:13, color:C.text }}>{fm.mapped}</span>
+                            {fm.status === 'alias' && <span style={{ fontSize:12, color:C.dim }}>← {fm.original}</span>}
+                            <span style={{ color:C.green, fontSize:14, marginLeft:'auto' }}>✓</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <Btn gold full disabled={!allResolved} onClick={handleImport}>
+        Import {parsed.filter((_, ti) => !excluded[ti]).length} Teams
+      </Btn>
+    </div>
+  );
+}
+
 // ─── KENT TEAMS ───────────────────────────────────────────────────────────────
 
 const mkp = fs => fs.map(faction => ({ faction }));
@@ -2603,7 +2919,7 @@ export default function App() {
       {screen === 'eventSetup' && <EventSetup events={events} onSave={handleSaveEvent} onBack={() => setScreen('events')} />}
       {screen === 'eventEdit' && <EventSetup event={editEventData} events={events} onSave={handleSaveEvent} onDelete={handleDeleteEvent} onBack={() => setScreen(activeEvent ? 'home' : 'events')} />}
 
-      {activeEvent && screen === 'home' && <Home teams={teams} rounds={roundsData} event={activeEvent} onSelect={t=>{setSelectedTeam(t);setScreen('matchup');}} onAdd={()=>{setEditTeam(null);setScreen('setup');}} onEdit={t=>{setEditTeam(t);setScreen('setup');}} onRound={n=>setScreen('round-'+n)} onBack={()=>{setActiveEvent(null);setScreenRaw('events');setHash(null,'events');}} />}
+      {activeEvent && screen === 'home' && <Home teams={teams} rounds={roundsData} event={activeEvent} onSelect={t=>{setSelectedTeam(t);setScreen('matchup');}} onAdd={()=>{setEditTeam(null);setScreen('setup');}} onEdit={t=>{setEditTeam(t);setScreen('setup');}} onRound={n=>setScreen('round-'+n)} onBack={()=>{setActiveEvent(null);setScreenRaw('events');setHash(null,'events');}} onImport={()=>setScreen('import')} />}
       {activeEvent && screen === 'setup' && <Setup team={editTeam} onSave={handleSaveOpponent} onDelete={handleDeleteOpponent} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'matchup' && <Matchup team={selectedTeam} onStart={()=>setScreen('pairing')} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'pairing' && <Pairing team={selectedTeam} onBack={()=>setScreen('matchup')} onComplete={(pairings) => {
@@ -2633,6 +2949,10 @@ export default function App() {
       {activeEvent && screen === 'defs' && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'ourteam' && <EditOurTeam roster={roster} currentTeamName={ourTeamName} onSave={saveRoster} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'factions' && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('home')} />}
+      {activeEvent && screen === 'import' && <ImportOpponents existingTeams={teams} onImport={(newTeams) => {
+        saveOpponents([...teams, ...newTeams]);
+        setScreen('home');
+      }} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'scoringTable' && <ScoringTableEditor table={activeEvent.scoringTable} onSave={saveScoringTable} onBack={()=>setScreen('home')} />}
       {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} />}
