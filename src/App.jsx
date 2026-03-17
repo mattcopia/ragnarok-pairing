@@ -960,6 +960,7 @@ function EventSetup({ event, events, onSave, onDelete, onBack }) {
 
 function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onBack }) {
   const [confirmPlayed, setConfirmPlayed] = useState(null);
+  const [copied, setCopied] = useState(false);
   const playedIds = new Set(Object.values(rounds).filter(r => r?.opponentId).map(r => r.opponentId));
   const allTeams = [...(teams ?? [])].filter(t => t).sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
   const sorted = [...allTeams.filter(t => !playedIds.has(t.id)), ...allTeams.filter(t => playedIds.has(t.id))];
@@ -994,8 +995,22 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
             ? <Cine as="h1" size={24} weight={900} mb={12}>Round {nextRound}</Cine>
             : <Cine as="h1" size={24} weight={900} mb={12}>Event Complete</Cine>;
         })()}
-        {completedRounds.length === 0 && (
-          <p style={{ color:C.dim, fontSize:15, fontStyle:'italic' }}>
+        {(() => {
+          const numR = event?.numRounds ?? 5;
+          const nextRound = Array.from({ length: numR }, (_, i) => i + 1).find(n => !rounds[n]?.complete);
+          if (!nextRound) return null;
+          const nextRoundData = rounds[nextRound];
+          const hasOpponent = nextRoundData?.opponentId;
+          return (
+            <div style={{ marginTop:8 }}>
+              <Btn gold full onClick={() => onRound(nextRound)}>
+                {hasOpponent ? `Continue Round ${nextRound} →` : `Start Round ${nextRound} →`}
+              </Btn>
+            </div>
+          );
+        })()}
+        {completedRounds.length === 0 && !Object.values(rounds).some(r => r?.opponentId) && (
+          <p style={{ color:C.dim, fontSize:14, fontStyle:'italic', marginTop:12 }}>
             Select your round opponent to view matchups and begin pairing
           </p>
         )}
@@ -1148,6 +1163,32 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
               </div>
             ))}
           </div>
+          <Btn ghost sm onClick={() => {
+            const lines = [`${event?.name ?? 'Event'} — ${teamName}`, `Record: ${wins}-${draws}-${losses} | GP: ${totalOurGP}-${totalTheirGP}`, ''];
+            Object.keys(rounds).sort().forEach(n => {
+              const r = rounds[n];
+              if (!r?.complete) return;
+              const opp = teams.find(t => t.id === r.opponentId);
+              const rGP = (r.scores ?? []).reduce((s, sc) => s + (parseInt(sc.ourGP) || 0), 0);
+              const tGP = (r.scores ?? []).reduce((s, sc) => s + (parseInt(sc.theirGP) || 0), 0);
+              const res = rGP >= 55 ? 'WIN' : rGP <= 45 ? 'LOSS' : 'TIE';
+              lines.push(`R${n}: vs ${opp?.name ?? '?'} — ${rGP}-${tGP} (${res})`);
+              (r.pairings ?? []).forEach((p, pi) => {
+                const player = RAGNAROK.find(x => x.id === p.usIdx);
+                const fac = opp?.players?.[p.themIdx]?.faction;
+                const sc = r.scores?.[pi];
+                if (player && fac && sc) lines.push(`  ${player.name} v ${fac}: ${sc.ourGP}-${sc.theirGP}${sc.ourVP ? ` (VP: ${sc.ourVP}-${sc.theirVP})` : ''}`);
+              });
+              lines.push('');
+            });
+            lines.push('Player Stats:');
+            [...playerStats].sort((a, b) => b.gp - a.gp).forEach(p => {
+              lines.push(`  ${p.name} (${p.faction}): ${p.gp}GP, ${p.games}g, avg ${p.avg}`);
+            });
+            navigator.clipboard.writeText(lines.join('\n')).then(() => { setCopied(true); setTimeout(() => setCopied(false), 3000); });
+          }} style={{ marginTop:12 }}>
+            {copied ? '✓ Copied!' : 'Copy Results to Clipboard'}
+          </Btn>
         </>
       )}
     </div>
@@ -2022,6 +2063,8 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   const [confirmSave, setConfirmSave] = useState(false);
   const [editing, setEditing] = useState(!round.complete);
   const [selectedSuggestions, setSelectedSuggestions] = useState({});
+  const [undoData, setUndoData] = useState(null);
+  const [undoTimer, setUndoTimer] = useState(null);
   const opponent = teams.find(t => t.id === opponentId);
   const pairings = round.pairings ?? [];
 
@@ -2051,9 +2094,24 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
   };
 
   const saveScores = () => {
+    const prevRounds = JSON.parse(JSON.stringify(rounds));
     const complete = scores.every(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10)));
     const updated = { ...rounds, [roundNum]: { ...round, opponentId: round.opponentId || opponentId, scores, complete } };
     onSave(updated);
+    setUndoData(prevRounds);
+    if (undoTimer) clearTimeout(undoTimer);
+    setUndoTimer(setTimeout(() => { setUndoData(null); setUndoTimer(null); }, 5000));
+  };
+
+  const handleUndo = () => {
+    if (undoData) {
+      onSave(undoData);
+      setScores(undoData[roundNum]?.scores ?? Array.from({ length: 5 }, (_, i) => ({ table: i+1, ourVP:'', theirVP:'', ourGP:'', theirGP:'' })));
+      setEditing(true);
+      setUndoData(null);
+      if (undoTimer) clearTimeout(undoTimer);
+      setUndoTimer(null);
+    }
   };
 
   const ourTotal = scores.reduce((s, sc) => s + (parseInt(sc.ourGP) || 0), 0);
@@ -2224,6 +2282,18 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                 </div>
               )}
             </>
+          )}
+
+          {/* Undo toast */}
+          {undoData && (
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 16px',
+              borderLeft:`3px solid ${C.gold}`, background:C.surf, marginTop:12, marginBottom:12 }}>
+              <span style={{ fontSize:13, color:C.text }}>Scores saved</span>
+              <button onClick={handleUndo} style={{
+                background:'transparent', border:`1px solid ${C.gold}`, color:C.gold, padding:'8px 16px',
+                fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer', letterSpacing:1, fontWeight:600
+              }}>Undo</button>
+            </div>
           )}
 
           {/* Rating suggestions after round is complete */}
