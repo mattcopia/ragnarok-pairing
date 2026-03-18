@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX Focus Improvements</title>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing:border-box;margin:0;padding:0; }
+  body { background:#0a0806;color:#b0a898;font-family:'Source Code Pro',monospace;min-height:100vh; }
+  :root { --bg:#0a0806;--surf:#0e0c0a;--bord:#1e1814;--amber:#c88838;--dim:#908878;--white:#e8dcd0;--green:#80d040;--red:#e04848;--slate:#7888a0;--greenBord:#60a830; }
+
+  .container { max-width:400px;margin:0 auto;padding:20px 16px; }
+  h1 { font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;color:var(--amber);text-align:center;margin-bottom:8px; }
+  .sub { text-align:center;color:var(--dim);font-size:13px;margin-bottom:24px; }
+  .label { font-family:'Chakra Petch',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--amber);opacity:0.6;margin-bottom:8px;text-align:center; }
+  .vs { font-family:'Chakra Petch',sans-serif;font-size:20px;font-weight:700;color:var(--white);text-align:center;margin-bottom:4px; }
+  .divider { display:flex;align-items:center;gap:12px;margin:20px 0 12px; }
+  .divider-line { flex:1;height:1px;background:var(--bord); }
+  .divider-label { font-family:'Chakra Petch',sans-serif;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:#a87830; }
+
+  /* BEFORE section */
+  .section-before { border:2px dashed #333;padding:16px;margin-bottom:32px;border-radius:4px; }
+  .section-before .tag { font-family:'Chakra Petch',sans-serif;font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px; }
+
+  /* AFTER sections */
+  .heading { font-family:'Chakra Petch',sans-serif;font-size:24px;font-weight:700;color:var(--white);text-align:center;margin-bottom:4px; }
+  .sub-prompt { font-family:'Source Code Pro',monospace;font-size:13px;color:var(--dim);font-style:italic;text-align:center;margin-bottom:16px; }
+
+  /* Dimmed completed */
+  .round-row { display:flex;align-items:center;padding:14px 16px;background:var(--surf);margin-bottom:4px;gap:12px; }
+  .round-row.complete { border-left:3px solid var(--greenBord);opacity:0.4; }
+  .round-row.active { border-left:3px solid var(--amber); }
+  .round-row.pending { border-left:3px solid var(--bord);opacity:0.5; }
+  .round-num { font-family:'Source Code Pro',monospace;font-size:12px;color:var(--dim);min-width:28px; }
+  .round-opp { font-family:'Chakra Petch',sans-serif;font-size:13px;color:var(--white);flex:1; }
+  .round-opp.dim { color:var(--dim); }
+  .round-score { font-family:'Source Code Pro',monospace;font-size:14px;font-weight:700; }
+
+  /* Score entry - reduced noise */
+  .score-table { border-left:3px solid var(--bord);background:var(--surf);padding:12px 14px;margin-bottom:6px; }
+  .score-label { display:flex;justify-content:space-between;align-items:center;margin-bottom:8px; }
+  .score-label .table-num { font-family:'Chakra Petch',sans-serif;font-size:12px;color:var(--dim); }
+  .score-label .pairing { font-size:13px; }
+  .score-label .pairing .us { color:var(--amber);font-family:'Chakra Petch',sans-serif;font-weight:600; }
+  .score-label .pairing .them { color:var(--slate);font-family:'Chakra Petch',sans-serif;font-weight:600; }
+  .score-inputs { display:flex;gap:10px;align-items:center; }
+  .score-input { flex:1;background:#0c0a08;border:1px solid var(--bord);color:var(--white);padding:12px 10px;font-size:16px;font-family:'Source Code Pro',monospace;outline:none;text-align:center; }
+  .score-result { font-family:'Source Code Pro',monospace;font-size:14px;font-weight:700;white-space:nowrap; }
+
+  /* Sticky action bar */
+  .sticky-bar { position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--bord);padding:12px 16px;display:flex;gap:10px;z-index:50; }
+  .sticky-btn { flex:1;background:var(--amber);color:var(--bg);padding:14px;border:none;font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:800;letter-spacing:2px;text-transform:uppercase;text-align:center;cursor:pointer; }
+  .sticky-btn.ghost { background:transparent;border:1px solid var(--bord);color:var(--amber);font-weight:600; }
+  .sticky-progress { font-family:'Source Code Pro',monospace;font-size:12px;color:var(--dim);text-align:center;margin-bottom:6px; }
+
+  .comparison { display:flex;gap:16px;margin-bottom:32px; }
+  .comparison > div { flex:1; }
+  .comp-label { font-family:'Chakra Petch',sans-serif;font-size:10px;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:12px;padding:4px;background:var(--surf); }
+  .comp-label.before { color:var(--red); }
+  .comp-label.after { color:var(--green); }
+
+  .spacer { height:80px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<h1>UX Focus Improvements</h1>
+<p class="sub">Three changes to reduce cognitive load</p>
+
+<!-- CONCEPT 1: Dimmed completed rounds -->
+<div class="divider">
+  <div class="divider-line"></div>
+  <div class="divider-label">1. Dim Completed Rounds</div>
+  <div class="divider-line"></div>
+</div>
+
+<p style="color:var(--dim);font-size:13px;margin-bottom:16px;">Completed rounds fade to 40% — your eye goes straight to the active round.</p>
+
+<div class="round-row complete">
+  <span class="round-num">01</span>
+  <span class="round-opp">vs Drooling Cretins</span>
+  <span class="round-score" style="color:var(--green)">68-32</span>
+  <span style="font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:700;color:var(--green)">W</span>
+</div>
+<div class="round-row complete">
+  <span class="round-num">02</span>
+  <span class="round-opp">vs Warhomies</span>
+  <span class="round-score" style="color:var(--red)">42-58</span>
+  <span style="font-family:'Chakra Petch',sans-serif;font-size:12px;font-weight:700;color:var(--red)">L</span>
+</div>
+<div class="round-row active">
+  <span class="round-num">03</span>
+  <span class="round-opp">Not started</span>
+</div>
+<div class="round-row pending">
+  <span class="round-num">04</span>
+  <span class="round-opp dim">Not started</span>
+</div>
+<div class="round-row pending">
+  <span class="round-num">05</span>
+  <span class="round-opp dim">Not started</span>
+</div>
+
+<!-- CONCEPT 2: Sticky action bar -->
+<div class="divider">
+  <div class="divider-line"></div>
+  <div class="divider-label">2. Sticky Action Bar</div>
+  <div class="divider-line"></div>
+</div>
+
+<p style="color:var(--dim);font-size:13px;margin-bottom:16px;">Primary action sticks to the bottom. Always visible, always clear what to do next. Shows progress too.</p>
+
+<div style="position:relative;border:1px solid var(--bord);padding:0;margin-bottom:16px;min-height:320px;overflow:hidden;">
+  <div style="padding:16px;">
+    <div class="heading" style="font-size:18px;">Round 2 Scores</div>
+    <div class="sub-prompt" style="font-size:12px;">vs Warhomies</div>
+
+    <div class="score-table">
+      <div class="score-label">
+        <span class="table-num">T1</span>
+        <span class="pairing"><span class="us">Jacob</span> vs <span class="them">Necrons</span></span>
+      </div>
+      <div class="score-inputs">
+        <input class="score-input" value="76" readonly>
+        <input class="score-input" value="45" readonly>
+        <span class="score-result" style="color:var(--green)">16-4</span>
+      </div>
+    </div>
+
+    <div class="score-table">
+      <div class="score-label">
+        <span class="table-num">T2</span>
+        <span class="pairing"><span class="us">Matt</span> vs <span class="them">Tau</span></span>
+      </div>
+      <div class="score-inputs">
+        <input class="score-input" value="52" readonly>
+        <input class="score-input" value="68" readonly>
+        <span class="score-result" style="color:var(--red)">7-13</span>
+      </div>
+    </div>
+
+    <div class="score-table">
+      <div class="score-label">
+        <span class="table-num">T3</span>
+        <span class="pairing"><span class="us">Alex</span> vs <span class="them">CSM</span></span>
+      </div>
+      <div class="score-inputs">
+        <input class="score-input" value="" placeholder="VP">
+        <input class="score-input" value="" placeholder="VP">
+      </div>
+    </div>
+  </div>
+
+  <!-- Sticky bar mockup (relative positioned for demo) -->
+  <div style="position:absolute;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--bord);padding:10px 16px;">
+    <div class="sticky-progress">2 of 5 tables scored</div>
+    <div style="display:flex;gap:10px;">
+      <button class="sticky-btn" style="opacity:0.3;cursor:not-allowed;">Save Scores</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONCEPT 3: Reduced noise -->
+<div class="divider">
+  <div class="divider-line"></div>
+  <div class="divider-label">3. Reduce Visual Noise</div>
+  <div class="divider-line"></div>
+</div>
+
+<p style="color:var(--dim);font-size:13px;margin-bottom:16px;">Remove redundant labels. Let the data speak for itself.</p>
+
+<div class="comparison">
+  <div>
+    <div class="comp-label before">Before</div>
+    <div style="background:var(--surf);padding:12px;font-size:11px;line-height:1.8;">
+      <div style="color:#a87830;font-size:9px;letter-spacing:2px;text-transform:uppercase;">STEP 1 · CHOOSE DEFENDER</div>
+      <div style="color:var(--white);font-family:'Chakra Petch',sans-serif;font-size:16px;font-weight:700;">Select Your Defender</div>
+      <div style="color:var(--dim);font-style:italic;font-size:11px;">Choose secretly. Ranked by average matchup score...</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--dim);">⬇ Then the player list</div>
+    </div>
+  </div>
+  <div>
+    <div class="comp-label after">After</div>
+    <div style="background:var(--surf);padding:12px;font-size:11px;line-height:1.8;">
+      <div style="color:var(--white);font-family:'Chakra Petch',sans-serif;font-size:16px;font-weight:700;">Pick Your Defender</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--dim);">⬇ Player list immediately</div>
+    </div>
+  </div>
+</div>
+
+<div class="comparison">
+  <div>
+    <div class="comp-label before">Before</div>
+    <div style="background:var(--surf);padding:12px;font-size:11px;line-height:1.8;">
+      <div style="color:#a87830;font-size:9px;letter-spacing:2px;text-transform:uppercase;">TABLE 1</div>
+      <div style="color:var(--dim);font-size:11px;margin-bottom:4px;"><span style="color:var(--amber)">Jacob</span> <span style="color:var(--dim)">(Orks GT)</span> vs <span style="color:var(--slate)">Necrons</span></div>
+      <div style="color:#a87830;font-size:9px;letter-spacing:2px;text-transform:uppercase;">OUR VP</div>
+      <div style="background:#0c0a08;border:1px solid var(--bord);padding:6px;color:var(--white);font-size:14px;">76</div>
+      <div style="color:#a87830;font-size:9px;letter-spacing:2px;text-transform:uppercase;margin-top:4px;">THEIR VP</div>
+      <div style="background:#0c0a08;border:1px solid var(--bord);padding:6px;color:var(--white);font-size:14px;">45</div>
+    </div>
+  </div>
+  <div>
+    <div class="comp-label after">After</div>
+    <div style="background:var(--surf);padding:12px;font-size:11px;line-height:1.8;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+        <span style="color:var(--dim);">T1</span>
+        <span><span style="color:var(--amber)">Jacob</span> vs <span style="color:var(--slate)">Necrons</span></span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <div style="flex:1;text-align:center;">
+          <div style="background:#0c0a08;border:1px solid var(--bord);padding:8px;color:var(--white);font-size:16px;">76</div>
+        </div>
+        <span style="color:var(--dim);font-size:10px;">vs</span>
+        <div style="flex:1;text-align:center;">
+          <div style="background:#0c0a08;border:1px solid var(--bord);padding:8px;color:var(--white);font-size:16px;">45</div>
+        </div>
+        <span style="font-family:'Source Code Pro',monospace;font-size:13px;font-weight:700;color:var(--green);">16-4</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="spacer"></div>
+
+</div>
+</body>
+</html>

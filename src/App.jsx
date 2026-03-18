@@ -214,6 +214,9 @@ const CSS = `
   .tap-card { transition: border-color var(--dur-med) var(--ease-out), opacity var(--dur-fast) var(--ease-out); }
   .tap-card:active { opacity: 0.9; }
 
+  /* Sticky action bar */
+  .sticky-bar { position:fixed;bottom:0;left:0;right:0;background:${C.bg};border-top:1px solid ${C.bord};padding:10px 16px;z-index:50; }
+
   /* Date input icon */
   input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
 
@@ -1105,7 +1108,8 @@ function Home({ teams, rounds = {}, event, onSelect, onAdd, onEdit, onRound, onB
                 <div key={n} {...clickable(() => onRound(n))} style={{
                   display:'flex', alignItems:'center', padding:'14px 16px',
                   borderLeft:`3px solid ${complete ? C.greenBord : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? C.gold : C.bord}`,
-                  background:C.surf, cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1)', gap:12, marginBottom:4
+                  background:C.surf, cursor:'pointer', transition:'border-color 0.2s cubic-bezier(0.25,1,0.5,1), opacity 0.3s', gap:12, marginBottom:4,
+                  opacity: complete ? 0.4 : (n === Array.from({ length: event?.numRounds ?? 5 }, (_, j) => j + 1).find(x => !rounds[x]?.complete)) ? 1 : 0.5
                 }}
                   onMouseEnter={e => e.currentTarget.style.borderLeftColor = C.gold}
                   onMouseLeave={e => e.currentTarget.style.borderLeftColor = complete ? C.greenBord : C.bord}>
@@ -1472,11 +1476,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
   function PhaseOurDef() {
     return (
       <>
-        <Tag block mb={8}>Step 1 · Choose Defender</Tag>
-        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Defender</Cine>
-        <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:20 }}>
-          Choose secretly. Ranked by average matchup score vs their remaining players.
-        </p>
+        <Cine as="h2" size={20} weight={900} mb={16}>Pick Your Defender</Cine>
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:20 }}>
           {defRecs.map((i, rank) => {
             const r = RAGNAROK[i];
@@ -1530,11 +1530,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
   function PhaseTheirDef() {
     return (
       <>
-        <Tag block mb={8}>Step 1 · Reveal</Tag>
-        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Defender</Cine>
-        <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:18 }}>
-          Both teams have revealed defenders. Select the faction {team.name} put forward.
-        </p>
+        <Cine as="h2" size={20} weight={900} mb={12}>Enter Their Defender</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.blue} block mb={5}>Your Defender</Tag>
           <Cine size={13}>{RAGNAROK[ourDef].name}</Cine>
@@ -1575,21 +1571,16 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
     return (
       <>
-        <Tag block mb={8}>Step 2 · Attackers</Tag>
-        <Cine as="h2" size={20} weight={900} mb={6}>Select Your Attackers</Cine>
+        <Cine as="h2" size={20} weight={900} mb={12}>Pick Your Attackers</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.redBord}`, background:C.surf, marginBottom:18 }}>
           <Tag color={C.red} block mb={5}>Their Defender</Tag>
           <Cine size={13}>{team.players[theirDef].name}</Cine>
           <div style={{ fontSize:12, color:C.dim, fontStyle:'italic' }}>{team.players[theirDef].faction}</div>
         </div>
-        {autoSelected ? (
+        {autoSelected && (
           <div style={{ padding:'12px 14px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:14 }}>
             <span style={{ fontSize:13, color:C.gold }}>Only {atkRecs.length} player{atkRecs.length > 1 ? 's' : ''} available — auto-selected.</span>
           </div>
-        ) : (
-          <p style={{ color:C.dim, fontSize:13, fontStyle:'italic', marginBottom:14 }}>
-            Pick {maxOurAtk} to attack their defender. Ranked by matchup vs their faction.
-          </p>
         )}
         <div style={{ display:'flex', flexDirection:'column', gap:6, marginBottom:12 }}>
           {atkRecs.map((i, rank) => {
@@ -1631,8 +1622,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
     return (
       <>
-        <Tag block mb={8}>Step 2 · Reveal</Tag>
-        <Cine as="h2" size={20} weight={900} mb={6}>Enter Their Attackers</Cine>
+        <Cine as="h2" size={20} weight={900} mb={12}>Enter Their Attackers</Cine>
         <div style={{ padding:'10px 14px', borderLeft:`3px solid ${C.slate}`, background:C.surf, marginBottom:18 }}>
           <Cine size={13}>Select the opponent's chosen attackers</Cine>
         </div>
@@ -1675,8 +1665,7 @@ function Pairing({ team, onBack, onComplete, onScores }) {
 
     return (
       <>
-        <Tag block mb={8}>Step 3 · Resolve</Tag>
-        <Cine as="h2" size={20} weight={900} mb={18}>Defenders Choose</Cine>
+        <Cine as="h2" size={20} weight={900} mb={16}>Defenders Choose</Cine>
 
         {/* Our defender picks */}
         <div style={{ borderLeft:`3px solid ${C.blue}`, background:C.surf, padding:'16px 18px', marginBottom:16 }}>
@@ -2120,6 +2109,7 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
 
   const ourTotal = scores.reduce((s, sc) => s + (parseInt(sc.ourGP) || 0), 0);
   const theirTotal = scores.reduce((s, sc) => s + (parseInt(sc.theirGP) || 0), 0);
+  const scoredCount = scores.filter(s => !isNaN(parseInt(s.ourGP, 10)) && !isNaN(parseInt(s.theirGP, 10))).length;
 
   return (
     <div className="page-enter" style={{ maxWidth:700, margin:'0 auto', padding:'28px 20px' }}>
@@ -2257,35 +2247,25 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                         )}
                       </div>
                       {inputMode === 'vp' ? (
-                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-                          <div style={{ flex:1, minWidth:100 }}>
-                            <Tag block mb={4} color={C.dim}>Our VP</Tag>
-                            <input aria-label={`Table ${idx+1} our VP`} type="number" min="0" max="100" value={sc.ourVP} onChange={e => updateScore(idx, 'ourVP', e.target.value)}
-                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
-                          </div>
-                          <div style={{ flex:1, minWidth:100 }}>
-                            <Tag block mb={4} color={C.dim}>Their VP</Tag>
-                            <input aria-label={`Table ${idx+1} their VP`} type="number" min="0" max="100" value={sc.theirVP} onChange={e => updateScore(idx, 'theirVP', e.target.value)}
-                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
-                          </div>
+                        <div className="score-inputs" style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+                          <input aria-label={`Table ${idx+1} our VP`} type="number" min="0" max="100" value={sc.ourVP} placeholder="Us" onChange={e => updateScore(idx, 'ourVP', e.target.value)}
+                            style={{ flex:1, minWidth:70, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+                          <span style={{ color:C.dim, fontSize:12 }}>vs</span>
+                          <input aria-label={`Table ${idx+1} their VP`} type="number" min="0" max="100" value={sc.theirVP} placeholder="Them" onChange={e => updateScore(idx, 'theirVP', e.target.value)}
+                            style={{ flex:1, minWidth:70, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
                           {sc.ourGP !== '' && sc.ourGP !== undefined && (
-                            <span className="score-result" style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
+                            <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:14, fontWeight:700, color:sc.ourGP > sc.theirGP ? C.green : sc.ourGP < sc.theirGP ? C.red : C.gold, whiteSpace:'nowrap' }}>
                               {sc.ourGP}-{sc.theirGP}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <div className="score-inputs" style={{ display:'flex', gap:10, alignItems:'center', flexWrap:'wrap' }}>
-                          <div style={{ flex:1, minWidth:100 }}>
-                            <Tag block mb={4} color={C.dim}>Our GP</Tag>
-                            <input aria-label={`Table ${idx+1} our game points`} type="number" min="0" max="20" value={sc.ourGP} onChange={e => updateScore(idx, 'ourGP', e.target.value)}
-                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
-                          </div>
-                          <div style={{ flex:1, minWidth:100 }}>
-                            <Tag block mb={4} color={C.dim}>Their GP</Tag>
-                            <input aria-label={`Table ${idx+1} their game points`} type="number" min="0" max="20" value={sc.theirGP} onChange={e => updateScore(idx, 'theirGP', e.target.value)}
-                              style={{ width:'100%', background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none' }} />
-                          </div>
+                        <div className="score-inputs" style={{ display:'flex', gap:6, alignItems:'center', flexWrap:'wrap' }}>
+                          <input aria-label={`Table ${idx+1} our game points`} type="number" min="0" max="20" value={sc.ourGP} placeholder="Us" onChange={e => updateScore(idx, 'ourGP', e.target.value)}
+                            style={{ flex:1, minWidth:70, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
+                          <span style={{ color:C.dim, fontSize:12 }}>vs</span>
+                          <input aria-label={`Table ${idx+1} their game points`} type="number" min="0" max="20" value={sc.theirGP} placeholder="Them" onChange={e => updateScore(idx, 'theirGP', e.target.value)}
+                            style={{ flex:1, minWidth:70, background:C.input, border:`1px solid ${C.bord}`, color:C.white, padding:'12px 10px', fontSize:16, fontFamily:'Source Code Pro, monospace', outline:'none', textAlign:'center' }} />
                         </div>
                       )}
                     </div>
@@ -2293,43 +2273,24 @@ function RoundView({ roundNum, rounds, teams, onSave, onBack, matrixData, onSave
                 })}
               </div>
 
-              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 16px', borderLeft:`3px solid ${C.gold}`, background:C.surf, marginBottom:16 }}>
-                <Tag color={C.gold}>Round Total</Tag>
-                <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:18, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
-                  {ourTotal} - {theirTotal}
-                </span>
-                <span style={{ fontFamily:'Chakra Petch, sans-serif', fontSize:13, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
-                  {ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}
-                </span>
-              </div>
+              {/* Spacer for sticky bar */}
+              <div style={{ height:80 }} />
 
-              {!confirmSave ? (
-                <Btn gold full onClick={() => setConfirmSave(true)}>Save Scores</Btn>
-              ) : (
-                <div style={{ border:`1px solid ${C.gold}`, padding:'16px', marginBottom:8 }}>
-                  <Cine size={14} weight={700} mb={12}>Confirm Scores</Cine>
-                  <div style={{ display:'flex', flexDirection:'column', gap:4, marginBottom:14 }}>
-                    {scores.map((sc, idx) => (
-                      <div key={idx} style={{ display:'flex', justifyContent:'space-between', fontSize:13, color:C.text }}>
-                        <span>Table {idx + 1}</span>
-                        {inputMode === 'vp' && sc.ourVP !== '' && <span style={{ color:C.dim }}>VP: {sc.ourVP} - {sc.theirVP}</span>}
-                        <span style={{ fontFamily:'Source Code Pro, monospace', fontWeight:700, color:parseInt(sc.ourGP) > parseInt(sc.theirGP) ? C.green : parseInt(sc.ourGP) < parseInt(sc.theirGP) ? C.red : C.gold }}>
-                          {sc.ourGP} - {sc.theirGP}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ textAlign:'center', marginBottom:14 }}>
-                    <span style={{ fontFamily:'Source Code Pro, monospace', fontSize:16, fontWeight:700, color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold }}>
-                      Total: {ourTotal} - {theirTotal} ({ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'})
-                    </span>
-                  </div>
+              {/* Sticky action bar */}
+              <div className="sticky-bar">
+                <div style={{ fontFamily:'Source Code Pro, monospace', fontSize:12, color:C.dim, textAlign:'center', marginBottom:6 }}>
+                  {scoredCount} of 5 scored · {ourTotal}-{theirTotal}
+                  {scoredCount === 5 && <span style={{ color:ourTotal >= 55 ? C.green : ourTotal <= 45 ? C.red : C.gold, marginLeft:8 }}>{ourTotal >= 55 ? 'WIN' : ourTotal <= 45 ? 'LOSS' : 'TIE'}</span>}
+                </div>
+                {!confirmSave ? (
+                  <Btn gold full disabled={scoredCount < 5} onClick={() => setConfirmSave(true)}>Save Scores</Btn>
+                ) : (
                   <div style={{ display:'flex', gap:10 }}>
                     <Btn gold full onClick={() => { saveScores(); setConfirmSave(false); setEditing(false); }}>Confirm</Btn>
                     <Btn ghost full onClick={() => setConfirmSave(false)}>Go Back</Btn>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </>
           )}
 
@@ -3045,7 +3006,7 @@ export default function App() {
       }} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'scoringTable' && <ScoringTableEditor table={activeEvent.scoringTable} onSave={saveScoringTable} onBack={()=>setScreen('home')} />}
-      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>setScreen('home')} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} onMatchup={t => { setSelectedTeam(t); setScreen('matchup'); }} />}
+      {activeEvent && screen.startsWith('round-') && <RoundView roundNum={parseInt(screen.split('-')[1])} rounds={roundsData} teams={teams} onSave={saveRounds} onBack={()=>{setActiveEvent(null);setScreenRaw('events');setHash(null,'events');}} matrixData={matrixData} onSaveMatrix={saveMatrix} numRounds={activeEvent?.numRounds ?? 5} onRound={n=>setScreen('round-'+n)} onMatchup={t => { setSelectedTeam(t); setScreen('matchup'); }} />}
 
       {!activeEvent && (screen === 'defs') && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('events')} />}
       {!activeEvent && (screen === 'factions') && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('events')} />}
