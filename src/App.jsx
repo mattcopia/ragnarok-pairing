@@ -2393,6 +2393,7 @@ const FACTION_ALIASES = {
   'Chaos Daemons':'Daemons',
   'Chaos Space Marines':'CSM',
   'Leagues of Votann':'Votan',
+  'Genestealer Cult':'GSC','Genestealer Cults':'GSC',
   'Adeptus Mechanicus':'Ad Mech',
   'Space Marines (Astartes)':'_MARINE_',
   'Drukhari':'Drukhari',
@@ -2436,42 +2437,66 @@ function parseBCPText(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   const teams = [];
   let current = null;
-  let expectFaction = false;
+  let lastLineWasPlayer = false;
+  let lastPlayerDropped = false;
 
-  for (const line of lines) {
-    if (line === 'CHECKED IN' || line === 'NOT CHECKED IN') { expectFaction = false; continue; }
-    if (line.startsWith('Team Captain:')) continue;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const nextLine = lines[i + 1] ?? '';
+    const isStatus = line === 'CHECKED IN' || line === 'NOT CHECKED IN' || line === 'DROPPED';
 
-    if (!current) {
-      // First unrecognised line is a team name
-      current = { name: line, factions: [] };
-      teams.push(current);
-      expectFaction = false;
+    if (isStatus) {
+      if (lastLineWasPlayer && line === 'DROPPED') lastPlayerDropped = true;
+      lastLineWasPlayer = false;
       continue;
     }
 
-    if (expectFaction) {
-      // This line is a faction
-      current.factions.push(line);
-      expectFaction = false;
+    if (line.startsWith('Team Captain:')) {
+      // Check if next status line after captain says DROPPED — marks whole team
+      const captainStatus = nextLine;
+      if (captainStatus === 'DROPPED') current.dropped = true;
+      continue;
+    }
+
+    if (!current) {
+      current = { name: line, factions: [], droppedCount: 0, dropped: false };
+      teams.push(current);
+      lastLineWasPlayer = false;
+      continue;
+    }
+
+    if (current.factions.length >= 5) {
+      current = { name: line, factions: [], droppedCount: 0, dropped: false };
+      teams.push(current);
+      lastLineWasPlayer = false;
+      continue;
+    }
+
+    if (lastLineWasPlayer) {
+      // This line is a faction (follows a player name)
+      if (!lastPlayerDropped) {
+        current.factions.push(line);
+      } else {
+        current.droppedCount++;
+        current.factions.push(line);
+      }
+      lastLineWasPlayer = false;
+      lastPlayerDropped = false;
       if (current.factions.length >= 5) { current = null; }
       continue;
     }
 
-    // Could be a player name (next line is faction) or a new team name
-    // If current team already has 5 factions, this is a new team
-    if (current.factions.length >= 5) {
-      current = { name: line, factions: [] };
-      teams.push(current);
-      expectFaction = false;
-      continue;
-    }
-
-    // Player name line — next line should be faction
-    expectFaction = true;
+    // This is a player name — next non-status line is their faction
+    lastLineWasPlayer = true;
+    lastPlayerDropped = false;
   }
 
-  return teams;
+  // Filter: mark teams as dropped if all players dropped or team captain was dropped
+  return teams.filter(t => t.factions.length > 0).map(t => ({
+    name: t.name,
+    factions: t.factions,
+    dropped: t.dropped || false,
+  }));
 }
 
 function parseCSVText(text) {
@@ -2495,6 +2520,7 @@ function ImportOpponents({ existingTeams, onImport, onBack }) {
   const [parsed, setParsed] = useState(null);
   const [mappings, setMappings] = useState({});
   const [excluded, setExcluded] = useState({});
+  const [replaceAll, setReplaceAll] = useState(false);
 
   const handleParse = () => {
     const raw = mode === 'paste' ? parseBCPText(inputText) : parseCSVText(inputText);
@@ -2504,6 +2530,12 @@ function ImportOpponents({ existingTeams, onImport, onBack }) {
       factionMaps: t.factions.map(f => mapFaction(f)),
     }));
     setParsed(mapped);
+    // Auto-exclude dropped teams and our team
+    const autoExclude = {};
+    mapped.forEach((t, ti) => {
+      if (t.dropped || t.name.toLowerCase().includes('ragnarok')) autoExclude[ti] = true;
+    });
+    setExcluded(autoExclude);
     // Init mappings for flagged factions
     const m = {};
     mapped.forEach((t, ti) => {
@@ -2550,12 +2582,12 @@ function ImportOpponents({ existingTeams, onImport, onBack }) {
   );
 
   const handleImport = () => {
-    const teams = parsed.filter((_, ti) => !excluded[ti]).map((t, ti) => ({
+    const newTeams = parsed.filter((_, ti) => !excluded[ti]).map((t, ti) => ({
       id: `imp-${Date.now()}-${ti}`,
       name: t.name,
       players: t.factionMaps.map((_, fi) => ({ faction: getFinalFaction(ti, fi) })),
     }));
-    onImport(teams);
+    onImport(newTeams, replaceAll);
   };
 
   const existingNames = new Set((existingTeams ?? []).map(t => (t.name ?? '').toLowerCase()));
@@ -2619,8 +2651,16 @@ function ImportOpponents({ existingTeams, onImport, onBack }) {
       <Back onClick={() => setParsed(null)} />
       <Cine as="h1" size={24} weight={900} mb={8}>Review Import</Cine>
       <p style={{ color:C.dim, fontSize:13, marginBottom:20 }}>
-        {parsed.length} team{parsed.length !== 1 ? 's' : ''} found. Resolve any flagged factions before importing.
+        {parsed.length} team{parsed.length !== 1 ? 's' : ''} found. {Object.values(excluded).filter(Boolean).length} excluded.
       </p>
+
+      <div {...clickable(() => setReplaceAll(!replaceAll))} style={{
+        display:'flex', alignItems:'center', gap:10, padding:'12px 14px', marginBottom:16,
+        borderLeft:`3px solid ${replaceAll ? C.gold : C.bord}`, background:replaceAll ? C.surf : 'transparent', cursor:'pointer'
+      }}>
+        <span style={{ fontSize:16, color:replaceAll ? C.gold : C.dim }}>{replaceAll ? '☑' : '☐'}</span>
+        <span style={{ fontSize:13, color:C.text }}>Replace all existing opponents</span>
+      </div>
 
       <div style={{ display:'flex', flexDirection:'column', gap:10, marginBottom:24 }}>
         {parsed.map((t, ti) => {
@@ -2632,7 +2672,8 @@ function ImportOpponents({ existingTeams, onImport, onBack }) {
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                 <Cine size={14} weight={700}>{t.name}</Cine>
                 <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  {isDupe && <span style={{ fontSize:12, color:C.gold }}>Exists</span>}
+                  {t.dropped && <span style={{ fontSize:12, color:C.red }}>Dropped</span>}
+                  {isDupe && !t.dropped && <span style={{ fontSize:12, color:C.gold }}>Exists</span>}
                   <button onClick={() => setExcluded(prev => ({ ...prev, [ti]: !prev[ti] }))} style={{
                     background:'transparent', border:`1px solid ${C.bord}`, color:isExcluded ? C.green : C.dim,
                     padding:'6px 12px', fontSize:12, fontFamily:'Chakra Petch, sans-serif', cursor:'pointer'
@@ -3000,8 +3041,8 @@ export default function App() {
       {activeEvent && screen === 'defs' && <Definitions defsData={defsData} onSave={saveDefs} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'ourteam' && <EditOurTeam roster={roster} currentTeamName={ourTeamName} onSave={saveRoster} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'factions' && <ManageFactions factionList={factionList} onSave={saveFactions} onBack={()=>setScreen('home')} />}
-      {activeEvent && screen === 'import' && <ImportOpponents existingTeams={teams} onImport={(newTeams) => {
-        saveOpponents([...teams, ...newTeams]);
+      {activeEvent && screen === 'import' && <ImportOpponents existingTeams={teams} onImport={(newTeams, replace) => {
+        saveOpponents(replace ? newTeams : [...teams, ...newTeams]);
         setScreen('home');
       }} onBack={()=>setScreen('home')} />}
       {activeEvent && screen === 'roundPicker' && <RoundPicker rounds={roundsData} teams={teams} event={activeEvent} onSelect={n=>setScreen('round-'+n)} onBack={()=>setScreen('home')} />}
